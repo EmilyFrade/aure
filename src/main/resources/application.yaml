@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: Aure
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aure
+    username: aure
+    password: aure
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

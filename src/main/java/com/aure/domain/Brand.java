@@ -32,6 +32,9 @@ public class Brand {
 	@Column(nullable = false)
 	private String name;
 
+	@Column(nullable = false, unique = true, length = 100)
+	private String slug;
+
 	@Column(length = 500)
 	private String description;
 

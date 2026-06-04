@@ -5,10 +5,13 @@ import com.aure.api.dto.BlockRequestDto;
 import com.aure.api.dto.BlockResponseDto;
 import com.aure.api.dto.ScheduleRequestDto;
 import com.aure.api.dto.ScheduleResponseDto;
+import com.aure.domain.Appointment;
+import com.aure.domain.AppointmentStatus;
 import com.aure.domain.Professional;
 import com.aure.domain.ProfessionalBlock;
 import com.aure.domain.ProfessionalSchedule;
 import com.aure.domain.Service;
+import com.aure.repository.AppointmentRepository;
 import com.aure.repository.ProfessionalBlockRepository;
 import com.aure.repository.ProfessionalScheduleRepository;
 import com.aure.repository.ServiceRepository;
@@ -30,6 +33,7 @@ public class AvailabilityService {
 
 	private final ProfessionalScheduleRepository scheduleRepository;
 	private final ProfessionalBlockRepository blockRepository;
+	private final AppointmentRepository appointmentRepository;
 	private final ProfessionalService professionalService;
 	private final ServiceRepository serviceRepository;
 
@@ -119,13 +123,23 @@ public class AvailabilityService {
 		LocalDateTime dayEnd = date.atTime(LocalTime.MAX);
 		List<ProfessionalBlock> blocks = blockRepository.findByProfessionalIdAndStartDatetimeLessThanAndEndDatetimeGreaterThan(professionalId, dayEnd, dayStart);
 
+		List<Appointment> appointments = appointmentRepository
+				.findByProfessionalIdAndScheduledDateAndStatusNot(professionalId, date, AppointmentStatus.CANCELLED);
+
 		List<LocalTime> freeSlots = allSlots.stream()
 			.filter(slot -> {
 				LocalDateTime slotStart = date.atTime(slot);
 				LocalDateTime slotEnd = slotStart.plusMinutes(service.getDurationMinutes());
-				return blocks.stream().noneMatch(block ->
-					slotStart.isBefore(block.getEndDatetime()) && slotEnd.isAfter(block.getStartDatetime())
-				);
+
+				boolean blockedByScheduleBlock = blocks.stream().anyMatch(block ->
+						slotStart.isBefore(block.getEndDatetime()) && slotEnd.isAfter(block.getStartDatetime()));
+
+				boolean blockedByAppointment = appointments.stream().anyMatch(a -> {
+					LocalTime aEnd = a.getScheduledTime().plusMinutes(a.getDurationMinutes());
+					return slot.isBefore(aEnd) && slot.plusMinutes(service.getDurationMinutes()).isAfter(a.getScheduledTime());
+				});
+
+				return !blockedByScheduleBlock && !blockedByAppointment;
 			})
 			.toList();
 

@@ -1,13 +1,15 @@
 package com.aure.service;
 
+import com.aure.api.dto.ProfessionalRequestDto;
+import com.aure.api.dto.ProfessionalResponseDto;
 import com.aure.domain.Brand;
 import com.aure.domain.Professional;
 import com.aure.repository.BrandRepository;
 import com.aure.repository.ProfessionalRepository;
-import com.aure.api.dto.ProfessionalRequestDto;
-import com.aure.api.dto.ProfessionalResponseDto;
+import com.aure.security.AuthenticatedProfessional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -75,12 +77,23 @@ public class ProfessionalService {
 			));
 	}
 
-	private Professional getProfessional(Long id) {
+	public Professional getProfessional(Long id) {
 		return professionalRepository.findById(id)
 			.orElseThrow(() -> new ResponseStatusException(
 				HttpStatus.NOT_FOUND,
 				"Profissional não encontrado com id %d".formatted(id)
 			));
+	}
+
+	public void requireOwnership(Long professionalId) {
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedProfessional principal)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Não autenticado");
+		}
+
+		if (!principal.professionalId().equals(professionalId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso não autorizado");
+		}
 	}
 
 }

@@ -30,8 +30,7 @@ public class SecurityConfig {
 			.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
-				.requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
-				.anyRequest().permitAll())
+				.anyRequest().authenticated())
 			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}

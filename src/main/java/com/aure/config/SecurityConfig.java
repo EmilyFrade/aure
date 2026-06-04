@@ -1,6 +1,7 @@
 package com.aure.config;
 
 import com.aure.security.AuthFilter;
+import com.aure.security.ClientAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
 	private final AuthFilter authFilter;
+	private final ClientAuthFilter clientAuthFilter;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -30,8 +32,10 @@ public class SecurityConfig {
 			.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+				.requestMatchers("/auth/client/**").permitAll()
 				.anyRequest().authenticated())
-			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(clientAuthFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 

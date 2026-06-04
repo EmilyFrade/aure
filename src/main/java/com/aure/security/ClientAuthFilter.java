@@ -1,7 +1,7 @@
 package com.aure.security;
 
-import com.aure.domain.ProfessionalSession;
-import com.aure.repository.ProfessionalSessionRepository;
+import com.aure.domain.ClientSession;
+import com.aure.repository.ClientSessionRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,14 +20,14 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class AuthFilter extends OncePerRequestFilter {
+public class ClientAuthFilter extends OncePerRequestFilter {
 
-	private final ProfessionalSessionRepository sessionRepository;
+	private final ClientSessionRepository sessionRepository;
 
 	@Override
 	protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 		String path = request.getRequestURI();
-		return path.startsWith("/auth/register") || path.startsWith("/auth/login");
+		return path.startsWith("/auth/client/request-otp") || path.startsWith("/auth/client/verify");
 	}
 
 	@Override
@@ -37,26 +37,20 @@ public class AuthFilter extends OncePerRequestFilter {
 			@NonNull FilterChain filterChain
 	) throws ServletException, IOException {
 		BearerTokenResolver.resolve(request.getHeader(HttpHeaders.AUTHORIZATION))
-				.flatMap(sessionRepository::findByToken)
-				.filter(session -> !session.isExpired() && session.getUser().isActive())
+				.flatMap(sessionRepository::findBySessionToken)
+				.filter(session -> !session.isSessionExpired())
 				.ifPresent(this::authenticate);
 
 		filterChain.doFilter(request, response);
 	}
 
-	private void authenticate(ProfessionalSession session) {
-		var user = session.getUser();
-
-		var principal = new AuthenticatedProfessional(
-				user.getId(),
-				user.getProfessional().getId(),
-				user.getEmail(),
-				session.getToken());
+	private void authenticate(ClientSession session) {
+		var principal = new AuthenticatedClient(session.getClient().getId(), session.getSessionToken());
 
 		var authentication = new UsernamePasswordAuthenticationToken(
 				principal,
 				null,
-				List.of(new SimpleGrantedAuthority("ROLE_PROFESSIONAL"))
+				List.of(new SimpleGrantedAuthority("ROLE_CLIENT"))
 		);
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);

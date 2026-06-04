@@ -33,6 +33,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
 				.requestMatchers("/auth/client/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/p/**").permitAll()
 				.anyRequest().authenticated())
 			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(clientAuthFilter, UsernamePasswordAuthenticationFilter.class);

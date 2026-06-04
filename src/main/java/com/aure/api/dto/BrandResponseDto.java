@@ -13,6 +13,7 @@ public class BrandResponseDto {
 
 	private Long id;
 	private String name;
+	private String slug;
 	private String description;
 
 	@JsonProperty("logo_url")
@@ -28,6 +29,7 @@ public class BrandResponseDto {
 		return new BrandResponseDto(
 				brand.getId(),
 				brand.getName(),
+				brand.getSlug(),
 				brand.getDescription(),
 				brand.getLogoUrl(),
 				brand.getCity(),

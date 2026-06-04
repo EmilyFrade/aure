@@ -7,6 +7,8 @@ import com.aure.domain.AppointmentStatus;
 import com.aure.domain.Client;
 import com.aure.domain.Professional;
 import com.aure.domain.Service;
+import com.aure.messaging.AppointmentCreatedEvent;
+import com.aure.messaging.AppointmentEventPublisher;
 import com.aure.repository.AppointmentRepository;
 import com.aure.repository.ClientRepository;
 import com.aure.repository.ProfessionalRepository;
@@ -30,6 +32,7 @@ public class AppointmentService {
 	private final ProfessionalRepository professionalRepository;
 	private final ServiceRepository serviceRepository;
 	private final ClientRepository clientRepository;
+	private final AppointmentEventPublisher eventPublisher;
 
 	@Transactional
 	public AppointmentResponseDto createAppointment(AppointmentRequestDto request) {
@@ -58,6 +61,15 @@ public class AppointmentService {
 				.build();
 
 		appointment = appointmentRepository.save(appointment);
+
+		eventPublisher.publish(new AppointmentCreatedEvent(
+				appointment.getId(),
+				professional.getId(),
+				client.getId(),
+				service.getId(),
+				request.scheduledDate(),
+				request.scheduledTime()
+		));
 
 		return appointmentRepository.findByIdWithDetails(appointment.getId()).map(AppointmentResponseDto::from).orElseThrow();
 	}

@@ -32,6 +32,10 @@ public class BrandService {
 
 	@Transactional
 	public BrandResponseDto create(BrandRequestDto request) {
+		if (brandRepository.findBySlug(request.getSlug()).isPresent()) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Slug já está em uso");
+		}
+
 		Brand brand = mapToEntity(new Brand(), request);
 		return BrandResponseDto.from(brandRepository.save(brand));
 	}
@@ -51,6 +55,7 @@ public class BrandService {
 
 	private Brand mapToEntity(Brand brand, BrandRequestDto request) {
 		brand.setName(request.getName());
+		brand.setSlug(request.getSlug());
 		brand.setDescription(request.getDescription());
 		brand.setLogoUrl(request.getLogoUrl());
 		brand.setCity(request.getCity());

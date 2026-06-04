@@ -21,6 +21,11 @@ public class BrandRequestDto {
 	@Size(max = 255)
 	private String name;
 
+	@NotBlank(message = "Slug é obrigatório")
+	@Size(max = 100)
+	@Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "Slug deve conter apenas letras minúsculas, números e hífens")
+	private String slug;
+
 	@Size(max = 500)
 	private String description;
 

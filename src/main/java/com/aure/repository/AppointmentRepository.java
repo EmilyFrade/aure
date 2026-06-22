@@ -20,5 +20,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 	@EntityGraph(attributePaths = {"professional", "service"})
 	List<Appointment> findByClientId(Long clientId);
 
+	@EntityGraph(attributePaths = {"professional", "service"})
+	List<Appointment> findByProfessionalId(Long professionalId);
+
 	List<Appointment> findByProfessionalIdAndScheduledDateAndStatusNot(Long professionalId, LocalDate scheduledDate, AppointmentStatus status);
+
+	Optional<Appointment> findByIdAndClientId(Long id, Long clientId);
+
+	Optional<Appointment> findByIdAndProfessionalId(Long id, Long professionalId);
 }

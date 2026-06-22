@@ -7,6 +7,7 @@ import com.aure.domain.AppointmentStatus;
 import com.aure.domain.Client;
 import com.aure.domain.Professional;
 import com.aure.domain.Service;
+import com.aure.messaging.AppointmentCancelledEvent;
 import com.aure.messaging.AppointmentCreatedEvent;
 import com.aure.messaging.AppointmentEventPublisher;
 import com.aure.repository.AppointmentRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -32,6 +34,7 @@ public class AppointmentService {
 	private final ProfessionalRepository professionalRepository;
 	private final ServiceRepository serviceRepository;
 	private final ClientRepository clientRepository;
+	private final ProfessionalService professionalService;
 	private final AppointmentEventPublisher eventPublisher;
 
 	@Transactional
@@ -78,6 +81,49 @@ public class AppointmentService {
 	public List<AppointmentResponseDto> listMyAppointments() {
 		Client client = currentClient();
 		return appointmentRepository.findByClientId(client.getId()).stream().map(AppointmentResponseDto::from).toList();
+	}
+
+	@Transactional
+	public AppointmentResponseDto cancelByClient(Long appointmentId) {
+		Client client = currentClient();
+		Appointment appointment = appointmentRepository.findByIdAndClientId(appointmentId, client.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
+		return AppointmentResponseDto.from(cancel(appointment));
+	}
+
+	@Transactional
+	public AppointmentResponseDto cancelByProfessional(Long professionalId, Long appointmentId) {
+		professionalService.requireOwnership(professionalId);
+		Appointment appointment = appointmentRepository.findByIdAndProfessionalId(appointmentId, professionalId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
+		return AppointmentResponseDto.from(cancel(appointment));
+	}
+
+	@Transactional(readOnly = true)
+	public List<AppointmentResponseDto> listByProfessional(Long professionalId) {
+		professionalService.requireOwnership(professionalId);
+		return appointmentRepository.findByProfessionalId(professionalId).stream().map(AppointmentResponseDto::from).toList();
+	}
+
+	private Appointment cancel(Appointment appointment) {
+		if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento não pode mais ser cancelado");
+		}
+
+		appointment.setStatus(AppointmentStatus.CANCELLED);
+		appointment.setCancelledAt(Instant.now());
+		appointment = appointmentRepository.save(appointment);
+
+		eventPublisher.publish(new AppointmentCancelledEvent(
+				appointment.getId(),
+				appointment.getProfessional().getId(),
+				appointment.getClient().getId(),
+				appointment.getService().getId(),
+				appointment.getScheduledDate(),
+				appointment.getScheduledTime()
+		));
+
+		return appointment;
 	}
 
 	private void checkConflict(Long professionalId, AppointmentRequestDto request, int durationMinutes) {

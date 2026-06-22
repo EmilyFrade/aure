@@ -30,6 +30,18 @@ public class RabbitConfig {
 	}
 
 	@Bean
+	public Queue appointmentCancelledQueue() {
+		return new Queue(AppointmentEventPublisher.ROUTING_KEY_CANCELLED, true);
+	}
+
+	@Bean
+	public Binding appointmentCancelledBinding(Queue appointmentCancelledQueue, TopicExchange aureEventsExchange) {
+		return BindingBuilder.bind(appointmentCancelledQueue)
+				.to(aureEventsExchange)
+				.with(AppointmentEventPublisher.ROUTING_KEY_CANCELLED);
+	}
+
+	@Bean
 	public JacksonJsonMessageConverter messageConverter() {
 		return new JacksonJsonMessageConverter();
 	}

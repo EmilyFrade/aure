@@ -81,6 +81,8 @@ public class AvailabilityService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O início do bloqueio deve ser anterior ao fim");
 		}
 
+		checkAppointmentConflict(professionalId, request.getStartDatetime(), request.getEndDatetime());
+
 		Professional professional = professionalService.getProfessional(professionalId);
 		ProfessionalBlock block = ProfessionalBlock.builder()
 			.professional(professional)
@@ -144,6 +146,22 @@ public class AvailabilityService {
 			.toList();
 
 		return new AvailabilityResponseDto(date, freeSlots);
+	}
+
+	private void checkAppointmentConflict(Long professionalId, LocalDateTime startDatetime, LocalDateTime endDatetime) {
+		boolean hasConflict = startDatetime.toLocalDate().datesUntil(endDatetime.toLocalDate().plusDays(1))
+				.flatMap(date -> appointmentRepository
+						.findByProfessionalIdAndScheduledDateAndStatusNot(professionalId, date, AppointmentStatus.CANCELLED)
+						.stream())
+				.anyMatch(a -> {
+					LocalDateTime aStart = a.getScheduledDate().atTime(a.getScheduledTime());
+					LocalDateTime aEnd = aStart.plusMinutes(a.getDurationMinutes());
+					return startDatetime.isBefore(aEnd) && endDatetime.isAfter(aStart);
+				});
+
+		if (hasConflict) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe agendamento nesse período");
+		}
 	}
 
 	private List<LocalTime> generateSlots(LocalTime start, LocalTime end, int durationMinutes) {

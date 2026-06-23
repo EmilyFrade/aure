@@ -28,9 +28,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
 	@EntityGraph(attributePaths = {"professional", "client", "service"})
 	@Query("SELECT a FROM Appointment a WHERE a.professional.id = :professionalId " +
-			"AND (:startDate IS NULL OR a.scheduledDate >= :startDate) " +
-			"AND (:endDate IS NULL OR a.scheduledDate <= :endDate) " +
-			"AND (:status IS NULL OR a.status = :status) " +
+			"AND a.scheduledDate >= COALESCE(:startDate, a.scheduledDate) " +
+			"AND a.scheduledDate <= COALESCE(:endDate, a.scheduledDate) " +
+			"AND a.status = COALESCE(:status, a.status) " +
 			"ORDER BY a.scheduledDate ASC, a.scheduledTime ASC")
 	List<Appointment> findByProfessionalIdWithFilters(
 			@Param("professionalId") Long professionalId,

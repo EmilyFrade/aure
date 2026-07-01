@@ -55,7 +55,7 @@ public class AuthService {
 				.build();
 
 		user = userRepository.save(user);
-		return new AuthResponseDto(createSession(user).getToken());
+		return new AuthResponseDto(createSession(user).getToken(), user.getProfessional().getId());
 	}
 
 	@Transactional
@@ -74,7 +74,7 @@ public class AuthService {
 		user.setLastLoginAt(Instant.now());
 		userRepository.save(user);
 
-		return new AuthResponseDto(createSession(user).getToken());
+		return new AuthResponseDto(createSession(user).getToken(), user.getProfessional().getId());
 	}
 
 	@Transactional

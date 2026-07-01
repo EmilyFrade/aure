@@ -71,6 +71,6 @@ public class ClientAuthService {
 		session.setLastLoginAt(now);
 		clientSessionRepository.save(session);
 
-		return new AuthResponseDto(session.getSessionToken());
+		return new AuthResponseDto(session.getSessionToken(), null);
 	}
 }

@@ -1,0 +1,189 @@
+<div class="min-h-screen bg-gray-50 flex justify-center px-4 py-10">
+  <div class="w-full max-w-xl">
+
+    @if (step() === 'loading') {
+      <p class="text-center text-gray-500">Carregando...</p>
+    }
+
+    @if (step() === 'not-found') {
+      <div class="bg-white rounded-lg shadow p-6 text-center">
+        <h1 class="text-lg font-semibold text-gray-800">Link não encontrado</h1>
+        <p class="text-gray-500 mt-2">Verifique se o endereço está correto.</p>
+      </div>
+    }
+
+    @if (profile() && step() !== 'loading' && step() !== 'not-found') {
+      <header class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-gray-900">{{ profile()!.brand_name }}</h1>
+        @if (profile()!.city) {
+          <p class="text-gray-500">{{ profile()!.city }} - {{ profile()!.state }}</p>
+        }
+      </header>
+    }
+
+    @if (errorMessage()) {
+      <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2 text-sm">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (step() === 'choose' && profile()) {
+      <div class="space-y-6">
+        @for (professional of profile()!.professionals; track professional.id) {
+          <div class="bg-white rounded-lg shadow p-5">
+            <h2 class="font-semibold text-gray-800 text-lg">{{ professional.name }}</h2>
+            @if (professional.bio) {
+              <p class="text-gray-500 text-sm mt-1">{{ professional.bio }}</p>
+            }
+            <ul class="mt-4 space-y-2">
+              @for (service of professional.services; track service.id) {
+                <li>
+                  <button
+                    type="button"
+                    (click)="chooseService(professional, service)"
+                    class="w-full flex items-center justify-between rounded-md border border-gray-200 px-4 py-3 text-left hover:border-indigo-400 hover:bg-indigo-50 transition"
+                  >
+                    <span>
+                      <span class="font-medium text-gray-800">{{ service.name }}</span>
+                      <span class="block text-xs text-gray-500">{{ service.duration_minutes }} min</span>
+                    </span>
+                    <span class="font-semibold text-indigo-600">R$ {{ service.price }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
+    @if (step() === 'schedule' && selectedProfessional() && selectedService()) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <button type="button" (click)="backToChoose()" class="text-sm text-indigo-600 mb-4">&larr; Voltar</button>
+        <h2 class="font-semibold text-gray-800">
+          {{ selectedService()!.name }} com {{ selectedProfessional()!.name }}
+        </h2>
+
+        <label class="block mt-4 text-sm font-medium text-gray-700">Data</label>
+        <input
+          type="date"
+          [min]="today"
+          [ngModel]="selectedDate()"
+          (ngModelChange)="selectedDate.set($event); loadAvailability()"
+          class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
+        />
+
+        <div class="mt-4">
+          @if (slots().length === 0) {
+            <p class="text-gray-500 text-sm">Nenhum horário disponível nessa data.</p>
+          } @else {
+            <div class="grid grid-cols-3 gap-2">
+              @for (slot of slots(); track slot) {
+                <button
+                  type="button"
+                  (click)="pickSlot(slot)"
+                  class="rounded-md border border-gray-300 py-2 text-sm hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  {{ slot }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (step() === 'identify') {
+      <div class="bg-white rounded-lg shadow p-6">
+        <button type="button" (click)="backToSchedule()" class="text-sm text-indigo-600 mb-4">&larr; Voltar</button>
+        <h2 class="font-semibold text-gray-800">Confirme seu telefone</h2>
+        <p class="text-gray-500 text-sm mt-1">Enviaremos um código de verificação.</p>
+
+        <input
+          type="tel"
+          placeholder="(31) 99999-9999"
+          [ngModel]="phone()"
+          (ngModelChange)="phone.set($event)"
+          class="mt-4 w-full rounded-md border border-gray-300 px-3 py-2"
+        />
+
+        <button
+          type="button"
+          [disabled]="submitting()"
+          (click)="requestCode()"
+          class="mt-4 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
+        >
+          {{ submitting() ? 'Enviando...' : 'Enviar código' }}
+        </button>
+      </div>
+    }
+
+    @if (step() === 'verify') {
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="font-semibold text-gray-800">Digite o código recebido</h2>
+        <p class="text-gray-500 text-sm mt-1">Código válido por 10 minutos.</p>
+
+        <input
+          type="text"
+          inputmode="numeric"
+          placeholder="000000"
+          [ngModel]="otpCode()"
+          (ngModelChange)="otpCode.set($event)"
+          class="mt-4 w-full rounded-md border border-gray-300 px-3 py-2 text-center text-lg tracking-widest"
+        />
+
+        <button
+          type="button"
+          [disabled]="submitting()"
+          (click)="verifyCode()"
+          class="mt-4 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
+        >
+          {{ submitting() ? 'Verificando...' : 'Confirmar código' }}
+        </button>
+      </div>
+    }
+
+    @if (step() === 'confirm' && selectedService() && selectedProfessional()) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="font-semibold text-gray-800">Revise seu agendamento</h2>
+        <dl class="mt-4 space-y-2 text-sm">
+          <div class="flex justify-between"><dt class="text-gray-500">Profissional</dt><dd>{{ selectedProfessional()!.name }}</dd></div>
+          <div class="flex justify-between"><dt class="text-gray-500">Serviço</dt><dd>{{ selectedService()!.name }}</dd></div>
+          <div class="flex justify-between"><dt class="text-gray-500">Data</dt><dd>{{ selectedDate() }}</dd></div>
+          <div class="flex justify-between"><dt class="text-gray-500">Horário</dt><dd>{{ selectedSlot() }}</dd></div>
+          <div class="flex justify-between"><dt class="text-gray-500">Valor</dt><dd>R$ {{ selectedService()!.price }}</dd></div>
+        </dl>
+
+        <label class="block mt-4 text-sm font-medium text-gray-700">Observações (opcional)</label>
+        <textarea
+          [ngModel]="notes()"
+          (ngModelChange)="notes.set($event)"
+          rows="2"
+          class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
+        ></textarea>
+
+        <button
+          type="button"
+          [disabled]="submitting()"
+          (click)="confirmAppointment()"
+          class="mt-4 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
+        >
+          {{ submitting() ? 'Confirmando...' : 'Confirmar agendamento' }}
+        </button>
+      </div>
+    }
+
+    @if (step() === 'done' && confirmedAppointment()) {
+      <div class="bg-white rounded-lg shadow p-6 text-center">
+        <h2 class="font-semibold text-green-700 text-lg">Agendamento confirmado!</h2>
+        <p class="text-gray-600 mt-2">
+          {{ confirmedAppointment()!.service_name }} com {{ confirmedAppointment()!.professional_name }}
+        </p>
+        <p class="text-gray-600">
+          {{ confirmedAppointment()!.scheduled_date }} às {{ confirmedAppointment()!.scheduled_time }}
+        </p>
+      </div>
+    }
+
+  </div>
+</div>

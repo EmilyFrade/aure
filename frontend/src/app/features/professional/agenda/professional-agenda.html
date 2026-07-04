@@ -1,0 +1,87 @@
+<div class="min-h-screen bg-gray-50 px-4 py-8">
+  <div class="max-w-3xl mx-auto">
+    <header class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-gray-900">Minha agenda</h1>
+      <button type="button" (click)="logout()" class="text-sm text-gray-500 hover:text-gray-700">Sair</button>
+    </header>
+
+    <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap items-center gap-4">
+      <div class="flex gap-2">
+        <button
+          type="button"
+          (click)="setRangeMode('day')"
+          [class.bg-indigo-600]="rangeMode() === 'day'"
+          [class.text-white]="rangeMode() === 'day'"
+          class="rounded-md px-3 py-1.5 text-sm border border-gray-300"
+        >
+          Dia
+        </button>
+        <button
+          type="button"
+          (click)="setRangeMode('week')"
+          [class.bg-indigo-600]="rangeMode() === 'week'"
+          [class.text-white]="rangeMode() === 'week'"
+          class="rounded-md px-3 py-1.5 text-sm border border-gray-300"
+        >
+          Semana
+        </button>
+      </div>
+
+      <input
+        type="date"
+        [ngModel]="referenceDate()"
+        (ngModelChange)="referenceDate.set($event); load()"
+        class="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+      />
+    </div>
+
+    @if (errorMessage()) {
+      <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2 text-sm">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (loading()) {
+      <p class="text-gray-500 text-center">Carregando...</p>
+    } @else if (appointments().length === 0) {
+      <p class="text-gray-500 text-center">Nenhum agendamento neste período.</p>
+    } @else {
+      <ul class="space-y-3">
+        @for (appointment of appointments(); track appointment.id) {
+          <li class="bg-white rounded-lg shadow p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="font-medium text-gray-800">{{ appointment.client_name }} — {{ appointment.service_name }}</p>
+              <p class="text-sm text-gray-500">{{ appointment.scheduled_date }} às {{ appointment.scheduled_time }}</p>
+              <span
+                class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                [class.bg-yellow-100]="appointment.status === 'PENDING'"
+                [class.text-yellow-800]="appointment.status === 'PENDING'"
+                [class.bg-green-100]="appointment.status === 'CONFIRMED'"
+                [class.text-green-800]="appointment.status === 'CONFIRMED'"
+                [class.bg-blue-100]="appointment.status === 'COMPLETED'"
+                [class.text-blue-800]="appointment.status === 'COMPLETED'"
+                [class.bg-gray-100]="appointment.status === 'CANCELLED' || appointment.status === 'NO_SHOW'"
+                [class.text-gray-600]="appointment.status === 'CANCELLED' || appointment.status === 'NO_SHOW'"
+              >
+                {{ appointment.status }}
+              </span>
+            </div>
+
+            <div class="flex gap-2">
+              @if (appointment.status === 'PENDING') {
+                <button (click)="updateStatus(appointment, 'CONFIRMED')" class="text-sm text-indigo-600 hover:underline">Confirmar</button>
+              }
+              @if (appointment.status === 'CONFIRMED') {
+                <button (click)="updateStatus(appointment, 'COMPLETED')" class="text-sm text-indigo-600 hover:underline">Concluir</button>
+                <button (click)="updateStatus(appointment, 'NO_SHOW')" class="text-sm text-gray-500 hover:underline">Não veio</button>
+              }
+              @if (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') {
+                <button (click)="cancel(appointment)" class="text-sm text-red-600 hover:underline">Cancelar</button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

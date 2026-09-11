@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { AuthResponse, LoginRequest } from '../models/api.models';
+import { AuthResponse, LoginRequest, SignupRequest } from '../models/api.models';
 import { SessionStore } from './session-store';
 
 @Injectable({ providedIn: 'root' })
@@ -12,6 +12,12 @@ export class ProfessionalAuthService {
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${API_BASE_URL}/auth/login`, request).pipe(
+      tap((response) => this.session.setProfessionalSession(response.token, response.professional_id!))
+    );
+  }
+
+  signup(request: SignupRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${API_BASE_URL}/auth/signup`, request).pipe(
       tap((response) => this.session.setProfessionalSession(response.token, response.professional_id!))
     );
   }

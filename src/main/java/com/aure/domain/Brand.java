@@ -41,10 +41,10 @@ public class Brand {
 	@Column(name = "logo_url", length = 500)
 	private String logoUrl;
 
-	@Column(length = 100)
+	@Column(nullable = false, length = 100)
 	private String city;
 
-	@Column(length = 2)
+	@Column(nullable = false, length = 2)
 	private String state;
 
 	@Column(length = 20)

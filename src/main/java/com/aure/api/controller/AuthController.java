@@ -3,6 +3,7 @@ package com.aure.api.controller;
 import com.aure.api.dto.AuthResponseDto;
 import com.aure.api.dto.LoginRequestDto;
 import com.aure.api.dto.RegisterRequestDto;
+import com.aure.api.dto.SignupRequestDto;
 import com.aure.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,12 @@ public class AuthController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public AuthResponseDto register(@Valid @RequestBody RegisterRequestDto request) {
 		return authService.register(request);
+	}
+
+	@PostMapping("/signup")
+	@ResponseStatus(HttpStatus.CREATED)
+	public AuthResponseDto signup(@Valid @RequestBody SignupRequestDto request) {
+		return authService.signup(request);
 	}
 
 	@PostMapping("/login")

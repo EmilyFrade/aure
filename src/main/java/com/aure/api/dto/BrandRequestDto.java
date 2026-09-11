@@ -34,9 +34,11 @@ public class BrandRequestDto {
 	@Size(max = 500)
 	private String logoUrl;
 
+	@NotBlank(message = "Cidade é obrigatória")
 	@Size(max = 100)
 	private String city;
 
+	@NotBlank(message = "Estado é obrigatório")
 	@Pattern(regexp = "^[A-Z]{2}$", message = "Estado deve ser a sigla UF com 2 letras maiúsculas")
 	private String state;
 

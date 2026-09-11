@@ -11,6 +11,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/booking/booking-page').then((m) => m.BookingPage)
   },
   {
+    path: 'profissional/cadastro',
+    loadComponent: () =>
+      import('./features/professional/onboarding/professional-onboarding').then((m) => m.ProfessionalOnboarding)
+  },
+  {
     path: 'profissional/login',
     loadComponent: () => import('./features/professional/login/professional-login').then((m) => m.ProfessionalLogin)
   },

@@ -10,6 +10,16 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface SignupRequest {
+  brand_name: string;
+  professional_name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  city: string;
+  state: string;
+}
+
 export interface ClientOtpRequest {
   phone: string;
 }

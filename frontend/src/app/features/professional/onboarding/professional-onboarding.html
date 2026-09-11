@@ -1,0 +1,120 @@
+<app-public-shell [showAuthActions]="false">
+  <div class="mx-auto max-w-lg">
+    <div class="mb-6 text-center">
+      <h1 class="font-display text-2xl font-bold text-slate-800">Crie sua conta</h1>
+      <p class="mt-1 text-sm text-slate-500">Configure seu negócio na Aure e comece a receber agendamentos.</p>
+    </div>
+
+    <app-card>
+      <form class="space-y-6" (ngSubmit)="submit()">
+        <section class="space-y-4">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-primary-500">Seu negócio</h2>
+
+          <app-text-field label="Nome do negócio" [required]="true" hint="Aparece no seu link público de agendamento.">
+            <input
+              class="field-input"
+              name="brandName"
+              [ngModel]="brandName()"
+              (ngModelChange)="brandName.set($event)"
+              placeholder="Ex.: Studio Beatriz Beauty"
+              autocomplete="organization" />
+          </app-text-field>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="col-span-2">
+              <app-text-field label="Cidade" [required]="true">
+                <input
+                  class="field-input"
+                  name="city"
+                  [ngModel]="city()"
+                  (ngModelChange)="city.set($event)"
+                  placeholder="Cidade"
+                  autocomplete="address-level2" />
+              </app-text-field>
+            </div>
+            <app-text-field label="UF" [required]="true">
+              <select class="field-input" name="state" [ngModel]="state()" (ngModelChange)="state.set($event)">
+                <option value="">--</option>
+                @for (uf of ufs; track uf) {
+                  <option [value]="uf">{{ uf }}</option>
+                }
+              </select>
+            </app-text-field>
+          </div>
+        </section>
+
+        <section class="space-y-4">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-primary-500">Você</h2>
+
+          <app-text-field label="Seu nome" [required]="true">
+            <input
+              class="field-input"
+              name="professionalName"
+              [ngModel]="professionalName()"
+              (ngModelChange)="professionalName.set($event)"
+              placeholder="Nome e sobrenome"
+              autocomplete="name" />
+          </app-text-field>
+
+          <app-text-field label="Telefone (WhatsApp)" hint="Opcional — usado para contato com clientes.">
+            <input
+              class="field-input"
+              name="phone"
+              [ngModel]="phone()"
+              (ngModelChange)="phone.set(maskPhone($event))"
+              inputmode="tel"
+              maxlength="15"
+              placeholder="(00) 00000-0000"
+              autocomplete="tel" />
+          </app-text-field>
+        </section>
+
+        <section class="space-y-4">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-primary-500">Acesso</h2>
+
+          <app-text-field label="E-mail" [required]="true" [error]="emailError()">
+            <input
+              class="field-input"
+              type="email"
+              name="email"
+              [ngModel]="email()"
+              (ngModelChange)="email.set(stripSpaces($event)); emailTaken.set(false)"
+              placeholder="voce@email.com"
+              autocomplete="email" />
+          </app-text-field>
+
+          <app-text-field label="Senha" [required]="true">
+            <input
+              class="field-input"
+              type="password"
+              name="password"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+              placeholder="Mínimo de 6 caracteres"
+              autocomplete="new-password" />
+          </app-text-field>
+
+          <app-text-field label="Confirmar senha" [required]="true" [error]="passwordError()">
+            <input
+              class="field-input"
+              type="password"
+              name="confirmPassword"
+              [ngModel]="confirmPassword()"
+              (ngModelChange)="confirmPassword.set($event)"
+              placeholder="Repita a senha"
+              autocomplete="new-password" />
+          </app-text-field>
+        </section>
+
+        <app-button type="submit" [full]="true" [loading]="submitting()" [disabled]="!canSubmit()">
+          Criar conta
+        </app-button>
+      </form>
+    </app-card>
+
+    <p class="mt-5 text-center text-sm text-slate-500">
+      Já tem conta?
+      <a routerLink="/profissional/login" class="font-medium text-primary-600 hover:text-primary-700">Entrar</a>
+    </p>
+  </div>
+</app-public-shell>

@@ -1,0 +1,147 @@
+<app-public-shell [showAuthActions]="false">
+  <div class="mx-auto max-w-lg">
+    @if (step() === 'loading') {
+      <div class="flex justify-center py-16">
+        <app-spinner />
+      </div>
+    } @else {
+      <div class="mb-6">
+        <div class="mb-4 flex items-center gap-2" aria-label="Progresso">
+          <span class="h-1.5 flex-1 rounded-full bg-primary-500"></span>
+          <span
+            class="h-1.5 flex-1 rounded-full"
+            [class.bg-primary-500]="step() === 'schedule'"
+            [class.bg-primary-100]="step() !== 'schedule'"></span>
+        </div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-primary-500">
+          Passo {{ step() === 'service' ? 1 : 2 }} de 2
+        </p>
+        @if (step() === 'service') {
+          <h1 class="mt-1 text-2xl font-bold text-slate-800">Qual serviço você oferece?</h1>
+          <p class="mt-1 text-sm text-slate-500">Comece com um. Você poderá adicionar outros depois.</p>
+        } @else {
+          <h1 class="mt-1 text-2xl font-bold text-slate-800">Quando você atende?</h1>
+          <p class="mt-1 text-sm text-slate-500">Seus clientes só verão horários livres dentro desse período.</p>
+        }
+      </div>
+
+      @if (step() === 'service') {
+        <app-card>
+          <form class="space-y-5" (ngSubmit)="saveService()">
+            <app-text-field label="Nome do serviço" [required]="true">
+              <input
+                class="field-input"
+                name="serviceName"
+                [ngModel]="serviceName()"
+                (ngModelChange)="serviceName.set($event)"
+                placeholder="Ex.: Corte feminino"
+                maxlength="255" />
+            </app-text-field>
+
+            <fieldset>
+              <legend class="mb-1.5 block text-sm font-medium text-slate-700">
+                Duração <span class="text-accent-500">*</span>
+              </legend>
+              <div class="grid grid-cols-3 gap-2">
+                @for (d of durations; track d) {
+                  <button
+                    type="button"
+                    (click)="duration.set(d)"
+                    [attr.aria-pressed]="duration() === d"
+                    class="rounded-xl border py-2.5 text-sm font-medium transition"
+                    [class]="
+                      duration() === d
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    ">
+                    {{ formatDuration(d) }}
+                  </button>
+                }
+              </div>
+            </fieldset>
+
+            <app-text-field label="Preço" [required]="true">
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">R$</span>
+                <input
+                  class="field-input pl-11"
+                  name="price"
+                  [ngModel]="price()"
+                  (ngModelChange)="price.set(maskCurrency($event))"
+                  inputmode="numeric"
+                  placeholder="0,00" />
+              </div>
+            </app-text-field>
+
+            <app-button type="submit" [full]="true" [loading]="saving()" [disabled]="!canSaveService()">
+              Continuar
+            </app-button>
+          </form>
+        </app-card>
+      } @else {
+        <app-card>
+          <form class="space-y-5" (ngSubmit)="saveSchedule()">
+            <fieldset>
+              <legend class="mb-1.5 block text-sm font-medium text-slate-700">
+                Dias de atendimento <span class="text-accent-500">*</span>
+              </legend>
+              <div class="grid grid-cols-7 gap-1.5">
+                @for (d of days; track d.value) {
+                  <button
+                    type="button"
+                    (click)="toggleDay(d.value)"
+                    [attr.aria-pressed]="selectedDays().has(d.value)"
+                    class="rounded-xl border py-2.5 text-xs font-medium transition sm:text-sm"
+                    [class]="
+                      selectedDays().has(d.value)
+                        ? 'border-primary-500 bg-primary-500 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    ">
+                    {{ d.short }}
+                  </button>
+                }
+              </div>
+            </fieldset>
+
+            <div class="grid grid-cols-2 gap-3">
+              <app-text-field label="Início" [required]="true">
+                <input
+                  class="field-input"
+                  type="time"
+                  name="startTime"
+                  [ngModel]="startTime()"
+                  (ngModelChange)="startTime.set($event)" />
+              </app-text-field>
+              <app-text-field label="Término" [required]="true">
+                <input
+                  class="field-input"
+                  type="time"
+                  name="endTime"
+                  [ngModel]="endTime()"
+                  (ngModelChange)="endTime.set($event)" />
+              </app-text-field>
+            </div>
+            @if (timeError()) {
+              <p class="-mt-3 text-xs text-accent-600">{{ timeError() }}</p>
+            }
+
+            <p class="flex gap-2 rounded-xl bg-primary-50 p-3 text-xs text-primary-700">
+              <app-icon name="info" [size]="16" />
+              Intervalos (como almoço) e bloqueios podem ser ajustados depois nas configurações.
+            </p>
+
+            <app-button type="submit" [full]="true" [loading]="saving()" [disabled]="!canSaveSchedule()">
+              Concluir
+            </app-button>
+          </form>
+        </app-card>
+      }
+
+      <p class="mt-5 text-center text-sm">
+        <a routerLink="/profissional/agenda" class="font-medium text-slate-500 hover:text-slate-700">
+          Configurar depois
+        </a>
+      </p>
+    }
+  </div>
+</app-public-shell>

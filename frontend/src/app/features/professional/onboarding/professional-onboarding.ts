@@ -82,7 +82,7 @@ export class ProfessionalOnboarding {
         next: () => {
           this.submitting.set(false);
           this.toast.success('Conta criada! Bem-vinda à Aure.');
-          this.router.navigate(['/profissional/agenda']);
+          this.router.navigate(['/profissional/primeiros-passos']);
         },
         error: (err: HttpErrorResponse) => {
           this.submitting.set(false);

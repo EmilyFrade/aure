@@ -20,6 +20,37 @@ export interface SignupRequest {
   state: string;
 }
 
+export interface ServiceRequest {
+  name: string;
+  description?: string;
+  duration_minutes: number;
+  price: number;
+  is_active?: boolean;
+}
+
+export interface ServiceResponse {
+  id: number;
+  professional_id: number;
+  name: string;
+  description: string | null;
+  duration_minutes: number;
+  price: number;
+  is_active: boolean;
+}
+
+export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+export interface ScheduleRequest {
+  day_of_week: DayOfWeek;
+  start_time: string;
+  end_time: string;
+}
+
+export interface ScheduleResponse extends ScheduleRequest {
+  id: number;
+  professional_id: number;
+}
+
 export interface ClientOtpRequest {
   phone: string;
 }

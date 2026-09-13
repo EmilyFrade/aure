@@ -16,6 +16,12 @@ export const routes: Routes = [
       import('./features/professional/onboarding/professional-onboarding').then((m) => m.ProfessionalOnboarding)
   },
   {
+    path: 'profissional/primeiros-passos',
+    loadComponent: () =>
+      import('./features/professional/setup/professional-setup').then((m) => m.ProfessionalSetup),
+    canActivate: [professionalGuard]
+  },
+  {
     path: 'profissional/login',
     loadComponent: () => import('./features/professional/login/professional-login').then((m) => m.ProfessionalLogin)
   },

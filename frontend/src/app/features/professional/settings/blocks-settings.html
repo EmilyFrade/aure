@@ -1,0 +1,135 @@
+<div class="mb-3 flex items-center justify-between gap-3">
+  <p class="text-sm text-slate-500">Folgas, férias e compromissos em que você não atende.</p>
+  @if (!formOpen() && upcoming().length > 0) {
+    <app-button size="sm" (click)="openForm()">
+      <app-icon name="plus" [size]="16" />
+      Bloquear
+    </app-button>
+  }
+</div>
+
+@if (formOpen()) {
+  <app-card class="mb-3">
+    <h2 class="mb-4 text-base font-semibold text-slate-800">Novo bloqueio</h2>
+    <form class="space-y-4" (ngSubmit)="save()">
+      <div class="grid grid-cols-2 gap-3">
+        <app-text-field label="De" [required]="true">
+          <input
+            class="field-input"
+            type="date"
+            name="startDate"
+            [min]="today"
+            [ngModel]="startDate()"
+            (ngModelChange)="setStartDate($event)" />
+        </app-text-field>
+        <app-text-field label="Até" [required]="true">
+          <input
+            class="field-input"
+            type="date"
+            name="endDate"
+            [min]="startDate() || today"
+            [ngModel]="endDate()"
+            (ngModelChange)="endDate.set($event)" />
+        </app-text-field>
+      </div>
+
+      <label class="flex items-center gap-3 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          name="fullDay"
+          class="h-5 w-5 rounded accent-primary-500"
+          [ngModel]="fullDay()"
+          (ngModelChange)="fullDay.set($event)" />
+        Dia inteiro
+      </label>
+
+      @if (!fullDay()) {
+        <div class="grid grid-cols-2 gap-3">
+          <app-text-field label="Início" [required]="true">
+            <input
+              class="field-input"
+              type="time"
+              name="startTime"
+              [ngModel]="startTime()"
+              (ngModelChange)="startTime.set($event)" />
+          </app-text-field>
+          <app-text-field label="Término" [required]="true">
+            <input
+              class="field-input"
+              type="time"
+              name="endTime"
+              [ngModel]="endTime()"
+              (ngModelChange)="endTime.set($event)" />
+          </app-text-field>
+        </div>
+      }
+
+      @if (formError()) {
+        <p class="text-xs text-accent-600">{{ formError() }}</p>
+      }
+
+      <app-text-field label="Motivo" hint="Opcional — só você vê.">
+        <input
+          class="field-input"
+          name="reason"
+          maxlength="500"
+          [ngModel]="reason()"
+          (ngModelChange)="reason.set($event)"
+          placeholder="Ex.: Férias, consulta médica" />
+      </app-text-field>
+
+      <div class="flex gap-2">
+        <app-button variant="outline" [full]="true" (click)="formOpen.set(false)">Cancelar</app-button>
+        <app-button type="submit" [full]="true" [loading]="saving()" [disabled]="!canSave()">Salvar</app-button>
+      </div>
+    </form>
+  </app-card>
+}
+
+@if (loading()) {
+  <div class="flex justify-center py-12 text-primary-500"><app-spinner /></div>
+} @else if (upcoming().length === 0) {
+  @if (!formOpen()) {
+    <app-card>
+      <app-empty-state
+        icon="calendar"
+        title="Nenhum bloqueio futuro"
+        description="Bloqueie dias ou horários em que você não vai atender. Eles somem da agenda pública.">
+        <app-button (click)="openForm()">Bloquear período</app-button>
+      </app-empty-state>
+    </app-card>
+  }
+} @else {
+  <div class="space-y-3">
+    @for (block of upcoming(); track block.id) {
+      @let info = describe(block);
+      <app-card [padded]="false">
+        <div class="flex items-center gap-3 p-4">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
+            <app-icon name="calendar" [size]="20" />
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="font-medium text-slate-800">{{ info.title }}</p>
+            <p class="text-sm text-slate-500">
+              {{ info.detail }}
+              @if (block.reason) {
+                · {{ block.reason }}
+              }
+            </p>
+          </div>
+          @if (confirmDeleteId() === block.id) {
+            <app-button variant="danger" size="sm" (click)="remove(block)">Remover?</app-button>
+          } @else {
+            <button
+              type="button"
+              class="p-2 text-slate-400 hover:text-accent-600"
+              aria-label="Remover bloqueio"
+              (click)="remove(block)">
+              <app-icon name="trash" [size]="18" />
+            </button>
+          }
+        </div>
+      </app-card>
+    }
+  </div>
+}

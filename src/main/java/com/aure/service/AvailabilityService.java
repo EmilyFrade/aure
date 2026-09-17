@@ -47,6 +47,7 @@ public class AvailabilityService {
 	public ScheduleResponseDto createSchedule(Long professionalId, ScheduleRequestDto request) {
 		professionalService.requireOwnership(professionalId);
 		validateScheduleTimes(request);
+		checkScheduleOverlap(professionalId, null, request);
 		Professional professional = professionalService.getProfessional(professionalId);
 		ProfessionalSchedule schedule = mapToSchedule(new ProfessionalSchedule(), professional, request);
 		return ScheduleResponseDto.from(scheduleRepository.save(schedule));
@@ -56,6 +57,7 @@ public class AvailabilityService {
 	public ScheduleResponseDto updateSchedule(Long professionalId, Long scheduleId, ScheduleRequestDto request) {
 		professionalService.requireOwnership(professionalId);
 		validateScheduleTimes(request);
+		checkScheduleOverlap(professionalId, scheduleId, request);
 		ProfessionalSchedule schedule = getSchedule(professionalId, scheduleId);
 		mapToSchedule(schedule, schedule.getProfessional(), request);
 		return ScheduleResponseDto.from(scheduleRepository.save(schedule));
@@ -185,6 +187,16 @@ public class AvailabilityService {
 	private void validateScheduleTimes(ScheduleRequestDto request) {
 		if (!request.getStartTime().isBefore(request.getEndTime())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O horário de início deve ser anterior ao de término");
+		}
+	}
+
+	private void checkScheduleOverlap(Long professionalId, Long ignoredScheduleId, ScheduleRequestDto request) {
+		boolean overlaps = scheduleRepository.findByProfessionalIdAndDayOfWeek(professionalId, request.getDayOfWeek()).stream()
+			.filter(s -> !s.getId().equals(ignoredScheduleId))
+			.anyMatch(s -> request.getStartTime().isBefore(s.getEndTime()) && request.getEndTime().isAfter(s.getStartTime()));
+
+		if (overlaps) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Esse intervalo se sobrepõe a outro horário do mesmo dia");
 		}
 	}
 

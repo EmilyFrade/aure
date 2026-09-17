@@ -18,6 +18,8 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Long> 
 
 	Optional<WaitingList> findByIdAndClientId(Long id, Long clientId);
 
+	boolean existsByServiceId(Long serviceId);
+
 	Optional<WaitingList> findByIdAndProfessionalId(Long id, Long professionalId);
 
 	int countByProfessionalIdAndServiceIdAndStatus(Long professionalId, Long serviceId, WaitingListStatus status);

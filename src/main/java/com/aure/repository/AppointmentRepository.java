@@ -24,6 +24,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
 	Optional<Appointment> findByIdAndClientId(Long id, Long clientId);
 
+	boolean existsByServiceId(Long serviceId);
+
 	Optional<Appointment> findByIdAndProfessionalId(Long id, Long professionalId);
 
 	@EntityGraph(attributePaths = {"professional", "client", "service"})

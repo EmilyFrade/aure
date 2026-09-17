@@ -30,5 +30,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/professional/agenda/professional-agenda').then((m) => m.ProfessionalAgenda),
     canActivate: [professionalGuard]
   },
+  {
+    path: 'profissional/configuracoes',
+    loadComponent: () =>
+      import('./features/professional/settings/professional-settings').then((m) => m.ProfessionalSettings),
+    canActivate: [professionalGuard]
+  },
   { path: '**', redirectTo: '' }
 ];

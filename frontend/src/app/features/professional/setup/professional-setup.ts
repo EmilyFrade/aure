@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { DayOfWeek } from '../../../core/models/api.models';
+import { DayOfWeek, ServiceRequest } from '../../../core/models/api.models';
 import { ProfessionalAuthService } from '../../../core/services/professional-auth.service';
 import { ScheduleService } from '../../../core/services/schedule.service';
 import { ServiceCatalogService } from '../../../core/services/service-catalog.service';
@@ -13,25 +13,14 @@ import { Card } from '../../../shared/ui/card';
 import { Icon } from '../../../shared/ui/icon';
 import { Spinner } from '../../../shared/ui/spinner';
 import { TextField } from '../../../shared/ui/text-field';
-import { maskCurrencyBR, parseCurrencyBR } from '../../../shared/utils/masks';
+import { WEEK_DAYS } from '../../../shared/utils/format';
+import { ServiceForm } from '../shared/service-form';
 
 type Step = 'loading' | 'service' | 'schedule';
 
-const DAYS: { value: DayOfWeek; short: string }[] = [
-  { value: 'MONDAY', short: 'Seg' },
-  { value: 'TUESDAY', short: 'Ter' },
-  { value: 'WEDNESDAY', short: 'Qua' },
-  { value: 'THURSDAY', short: 'Qui' },
-  { value: 'FRIDAY', short: 'Sex' },
-  { value: 'SATURDAY', short: 'Sáb' },
-  { value: 'SUNDAY', short: 'Dom' }
-];
-
-const DURATIONS = [15, 30, 45, 60, 90, 120];
-
 @Component({
   selector: 'app-professional-setup',
-  imports: [FormsModule, RouterLink, PublicShell, Card, Button, TextField, Icon, Spinner],
+  imports: [FormsModule, RouterLink, PublicShell, Card, Button, TextField, Icon, Spinner, ServiceForm],
   templateUrl: './professional-setup.html'
 })
 export class ProfessionalSetup {
@@ -46,21 +35,13 @@ export class ProfessionalSetup {
   readonly step = signal<Step>('loading');
   readonly saving = signal(false);
 
-  readonly serviceName = signal('');
-  readonly duration = signal(60);
-  readonly price = signal('');
-
   readonly selectedDays = signal<ReadonlySet<DayOfWeek>>(
     new Set(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'])
   );
   readonly startTime = signal('09:00');
   readonly endTime = signal('18:00');
 
-  protected readonly days = DAYS;
-  protected readonly durations = DURATIONS;
-  protected readonly maskCurrency = maskCurrencyBR;
-
-  readonly canSaveService = computed(() => !!this.serviceName().trim() && !!this.price());
+  protected readonly days = WEEK_DAYS;
 
   readonly timeError = computed(() =>
     this.startTime() && this.endTime() && this.startTime() >= this.endTime()
@@ -83,13 +64,6 @@ export class ProfessionalSetup {
     });
   }
 
-  formatDuration(minutes: number): string {
-    if (minutes < 60) return `${minutes} min`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m ? `${h}h${m}` : `${h}h`;
-  }
-
   toggleDay(day: DayOfWeek): void {
     this.selectedDays.update((current) => {
       const next = new Set(current);
@@ -99,32 +73,24 @@ export class ProfessionalSetup {
     });
   }
 
-  saveService(): void {
-    if (!this.canSaveService() || this.saving()) return;
-
+  saveService(request: ServiceRequest): void {
     this.saving.set(true);
-    this.services
-      .create(this.professionalId, {
-        name: this.serviceName().trim(),
-        duration_minutes: this.duration(),
-        price: parseCurrencyBR(this.price())
-      })
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.step.set('schedule');
-        },
-        error: (err) => {
-          this.saving.set(false);
-          if (err.status === 400) this.toast.error('Confira os dados do serviço e tente novamente.');
-        }
-      });
+    this.services.create(this.professionalId, request).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.step.set('schedule');
+      },
+      error: (err) => {
+        this.saving.set(false);
+        if (err.status === 400) this.toast.error('Confira os dados do serviço e tente novamente.');
+      }
+    });
   }
 
   saveSchedule(): void {
     if (!this.canSaveSchedule() || this.saving()) return;
 
-    const requests = DAYS.filter((d) => this.selectedDays().has(d.value)).map((d) =>
+    const requests = WEEK_DAYS.filter((d) => this.selectedDays().has(d.value)).map((d) =>
       this.schedules.create(this.professionalId, {
         day_of_week: d.value,
         start_time: this.startTime(),

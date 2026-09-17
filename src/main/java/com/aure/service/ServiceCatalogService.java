@@ -4,7 +4,9 @@ import com.aure.api.dto.ServiceRequestDto;
 import com.aure.api.dto.ServiceResponseDto;
 import com.aure.domain.Professional;
 import com.aure.domain.Service;
+import com.aure.repository.AppointmentRepository;
 import com.aure.repository.ServiceRepository;
+import com.aure.repository.WaitingListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,8 @@ import java.util.List;
 public class ServiceCatalogService {
 
 	private final ServiceRepository serviceRepository;
+	private final AppointmentRepository appointmentRepository;
+	private final WaitingListRepository waitingListRepository;
 	private final ProfessionalService professionalService;
 
 	@Transactional(readOnly = true)
@@ -51,6 +55,12 @@ public class ServiceCatalogService {
 	public void delete(Long professionalId, Long serviceId) {
 		professionalService.requireOwnership(professionalId);
 		getService(professionalId, serviceId);
+		if (appointmentRepository.existsByServiceId(serviceId) || waitingListRepository.existsByServiceId(serviceId)) {
+			throw new ResponseStatusException(
+				HttpStatus.CONFLICT,
+				"Serviço já possui agendamentos. Desative-o para que não apareça mais para clientes."
+			);
+		}
 		serviceRepository.deleteById(serviceId);
 	}
 

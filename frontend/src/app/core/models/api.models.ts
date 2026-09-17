@@ -51,6 +51,44 @@ export interface ScheduleResponse extends ScheduleRequest {
   professional_id: number;
 }
 
+export interface BlockRequest {
+  start_datetime: string;
+  end_datetime: string;
+  reason?: string;
+}
+
+export interface BlockResponse {
+  id: number;
+  professional_id: number;
+  start_datetime: string;
+  end_datetime: string;
+  reason: string | null;
+}
+
+export interface BrandResponse {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  city: string | null;
+  state: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+}
+
+export interface ProfessionalResponse {
+  id: number;
+  brand_id: number;
+  name: string;
+  bio: string | null;
+  phone: string | null;
+  email: string | null;
+  photo_url: string | null;
+  is_active: boolean;
+}
+
 export interface ClientOtpRequest {
   phone: string;
 }

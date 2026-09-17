@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Icon, IconName } from '../ui/icon';
-import { Toast, ToastKind, ToastService } from './toast.service';
+import { ToastKind, ToastService } from './toast.service';
 
 @Component({
   selector: 'app-toast-host',

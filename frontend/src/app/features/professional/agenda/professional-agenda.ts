@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AppointmentResponse, AppointmentStatus } from '../../../core/models/api.models';
 import { ProfessionalAppointmentService } from '../../../core/services/professional-appointment.service';
 import { ProfessionalAuthService } from '../../../core/services/professional-auth.service';
@@ -9,7 +9,7 @@ type RangeMode = 'day' | 'week';
 
 @Component({
   selector: 'app-professional-agenda',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './professional-agenda.html'
 })
 export class ProfessionalAgenda {

@@ -6,7 +6,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionStore);
 
   const isClientRoute = req.url.includes('/appointments') && !req.url.includes('/professionals/');
-  const isProfessionalRoute = req.url.includes('/professionals/') || req.url.endsWith('/auth/logout');
+  const isProfessionalRoute =
+    req.url.includes('/professionals/') || req.url.includes('/brands/') || req.url.endsWith('/auth/logout');
 
   let token: string | null = null;
   if (isClientRoute) {

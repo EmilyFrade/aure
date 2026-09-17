@@ -27,56 +27,11 @@
 
       @if (step() === 'service') {
         <app-card>
-          <form class="space-y-5" (ngSubmit)="saveService()">
-            <app-text-field label="Nome do serviço" [required]="true">
-              <input
-                class="field-input"
-                name="serviceName"
-                [ngModel]="serviceName()"
-                (ngModelChange)="serviceName.set($event)"
-                placeholder="Ex.: Corte feminino"
-                maxlength="255" />
-            </app-text-field>
-
-            <fieldset>
-              <legend class="mb-1.5 block text-sm font-medium text-slate-700">
-                Duração <span class="text-accent-500">*</span>
-              </legend>
-              <div class="grid grid-cols-3 gap-2">
-                @for (d of durations; track d) {
-                  <button
-                    type="button"
-                    (click)="duration.set(d)"
-                    [attr.aria-pressed]="duration() === d"
-                    class="rounded-xl border py-2.5 text-sm font-medium transition"
-                    [class]="
-                      duration() === d
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                    ">
-                    {{ formatDuration(d) }}
-                  </button>
-                }
-              </div>
-            </fieldset>
-
-            <app-text-field label="Preço" [required]="true">
-              <div class="relative">
-                <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">R$</span>
-                <input
-                  class="field-input pl-11"
-                  name="price"
-                  [ngModel]="price()"
-                  (ngModelChange)="price.set(maskCurrency($event))"
-                  inputmode="numeric"
-                  placeholder="0,00" />
-              </div>
-            </app-text-field>
-
-            <app-button type="submit" [full]="true" [loading]="saving()" [disabled]="!canSaveService()">
-              Continuar
-            </app-button>
-          </form>
+          <app-service-form
+            submitLabel="Continuar"
+            [withDescription]="true"
+            [saving]="saving()"
+            (save)="saveService($event)" />
         </app-card>
       } @else {
         <app-card>

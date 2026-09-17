@@ -23,7 +23,7 @@ const TABS: readonly { id: Tab; label: string }[] = [
   imports: [AppShell, PublicLinkCard, ServicesSettings, SchedulesSettings, BlocksSettings],
   template: `
     <app-shell title="Configurações" [userName]="userName()" (logout)="logout()">
-      <div class="mx-auto max-w-2xl">
+      <div class="mx-auto max-w-4xl">
         @if (brand(); as b) {
           <div class="mb-5">
             <app-public-link-card [slug]="b.slug" [brandName]="b.name" />

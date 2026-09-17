@@ -37,7 +37,7 @@
     </app-empty-state>
   </app-card>
 } @else {
-  <div class="space-y-3">
+  <div class="grid gap-3 lg:grid-cols-2">
     @for (service of services(); track service.id) {
       @if (editing() === service.id) {
         <app-card>

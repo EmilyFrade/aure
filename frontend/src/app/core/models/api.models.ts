@@ -89,6 +89,40 @@ export interface ProfessionalResponse {
   is_active: boolean;
 }
 
+export interface SearchQuery {
+  city?: string;
+  state?: string;
+  service?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface MatchedService {
+  id: number;
+  name: string;
+  duration_minutes: number;
+  price: number;
+}
+
+export interface SearchResult {
+  brand_id: number;
+  brand_name: string;
+  slug: string;
+  description: string | null;
+  city: string;
+  state: string;
+  logo_url: string | null;
+  services: MatchedService[];
+}
+
+export interface SearchResponse {
+  content: SearchResult[];
+  page: number;
+  size: number;
+  total_elements: number;
+  total_pages: number;
+}
+
 export interface ClientOtpRequest {
   phone: string;
 }

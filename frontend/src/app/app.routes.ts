@@ -7,6 +7,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home').then((m) => m.Home)
   },
   {
+    path: 'buscar',
+    loadComponent: () => import('./features/search/search-page').then((m) => m.SearchPage)
+  },
+  {
     path: 'agendar/:slug',
     loadComponent: () => import('./features/booking/booking-page').then((m) => m.BookingPage)
   },

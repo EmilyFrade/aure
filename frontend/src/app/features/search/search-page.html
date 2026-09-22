@@ -1,0 +1,121 @@
+<app-public-shell>
+  <div class="mx-auto max-w-5xl">
+    <div class="mb-6">
+      <h1 class="font-display text-2xl font-bold text-slate-800">Encontre um profissional</h1>
+    </div>
+
+    <app-card class="mb-5">
+      <form class="grid grid-cols-3 gap-3 sm:grid-cols-12" (ngSubmit)="submit()">
+        <div class="col-span-2 sm:col-span-4">
+          <app-text-field label="Cidade">
+            <input
+              class="field-input"
+              name="city"
+              [ngModel]="city()"
+              (ngModelChange)="city.set($event)"
+              placeholder="Ex.: João Monlevade"
+              autocomplete="address-level2" />
+          </app-text-field>
+        </div>
+
+        <div class="sm:col-span-2">
+          <app-text-field label="UF">
+            <select class="field-input" name="state" [ngModel]="state()" (ngModelChange)="state.set($event)">
+              <option value="">Todas</option>
+              @for (uf of ufs; track uf) {
+                <option [value]="uf">{{ uf }}</option>
+              }
+            </select>
+          </app-text-field>
+        </div>
+
+        <div class="col-span-3 sm:col-span-4">
+          <app-text-field label="Serviço">
+            <input
+              class="field-input"
+              name="service"
+              [ngModel]="service()"
+              (ngModelChange)="service.set($event)"
+              placeholder="Ex.: corte, manicure, sobrancelha" />
+          </app-text-field>
+        </div>
+
+        <div class="col-span-3 flex items-end sm:col-span-2">
+          <app-button type="submit" [full]="true" [loading]="loading()">
+            <app-icon name="search" [size]="18" />
+            Buscar
+          </app-button>
+        </div>
+      </form>
+    </app-card>
+
+    @if (loading()) {
+      <div class="flex justify-center py-12 text-primary-500"><app-spinner /></div>
+    } @else if (failed()) {
+      <app-card>
+        <app-empty-state
+          icon="info"
+          title="Não foi possível buscar agora"
+          description="Verifique sua conexão e tente novamente.">
+          <app-button (click)="submit()">Tentar de novo</app-button>
+        </app-empty-state>
+      </app-card>
+    } @else if (results().length === 0) {
+      <app-card>
+        <app-empty-state
+          icon="search"
+          title="Nenhum profissional encontrado"
+          description="Tente outra cidade ou um termo mais simples, como “corte” em vez de “corte feminino”." />
+      </app-card>
+    } @else {
+      <p class="mb-3 text-sm text-slate-500">
+        {{ total() }} {{ total() === 1 ? 'resultado' : 'resultados' }}
+      </p>
+
+      <div class="grid items-start gap-3 lg:grid-cols-2">
+        @for (result of results(); track result.brand_id) {
+          <app-card>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-base font-semibold text-slate-900">{{ result.brand_name }}</p>
+                <p class="mt-0.5 flex items-center gap-1 text-sm text-slate-500">
+                  {{ result.city }} · {{ result.state }}
+                </p>
+              </div>
+              <a
+                [routerLink]="['/agendar', result.slug]"
+                class="shrink-0 rounded-xl bg-primary-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-600">
+                Ver horários
+              </a>
+            </div>
+
+            @if (result.description) {
+              <p class="mt-2 line-clamp-2 text-sm text-slate-500">{{ result.description }}</p>
+            }
+
+            @if (result.services.length) {
+              <ul class="mt-3 flex flex-wrap gap-2">
+                @for (s of result.services.slice(0, 3); track s.id) {
+                  <li class="rounded-xl bg-primary-50 px-3 py-1.5 text-xs text-primary-700">
+                    {{ s.name }} · {{ formatPrice(s.price) }} · {{ formatDuration(s.duration_minutes) }}
+                  </li>
+                }
+                @if (result.services.length > 3) {
+                  <li class="px-1 py-1.5 text-xs text-slate-500">
+                    + {{ result.services.length - 3 }}
+                  </li>
+                }
+              </ul>
+            }
+          </app-card>
+        }
+      </div>
+
+      @if (hasMore()) {
+        <div class="mt-4 flex justify-center">
+          <app-button variant="outline" [loading]="loadingMore()" (click)="loadMore()">Carregar mais</app-button>
+        </div>
+      }
+    }
+  </div>
+</app-public-shell>

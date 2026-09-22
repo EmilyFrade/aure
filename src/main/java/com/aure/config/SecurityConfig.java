@@ -39,7 +39,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/signup").permitAll()
 				.requestMatchers("/auth/client/**").permitAll()
-				.requestMatchers(HttpMethod.GET, "/p/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/p/**", "/search").permitAll()
 				.requestMatchers(HttpMethod.GET, "/professionals/*/availability").permitAll()
 				.anyRequest().authenticated())
 			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)

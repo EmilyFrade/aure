@@ -6,21 +6,12 @@
       </div>
     } @else {
       <div class="mb-6">
-        <div class="mb-4 flex items-center gap-2" aria-label="Progresso">
-          <span class="h-1.5 flex-1 rounded-full bg-primary-500"></span>
-          <span
-            class="h-1.5 flex-1 rounded-full"
-            [class.bg-primary-500]="step() === 'schedule'"
-            [class.bg-primary-100]="step() !== 'schedule'"></span>
-        </div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-primary-500">
-          Passo {{ step() === 'service' ? 1 : 2 }} de 2
-        </p>
+        <app-stepper [steps]="['Serviço', 'Horário']" [current]="step() === 'service' ? 0 : 1" class="mb-5" />
         @if (step() === 'service') {
-          <h1 class="mt-1 text-2xl font-bold text-slate-800">Qual serviço você oferece?</h1>
+          <h1 class="font-display text-2xl font-bold text-slate-900">Qual serviço você oferece?</h1>
           <p class="mt-1 text-sm text-slate-500">Comece com um. Você poderá adicionar outros depois.</p>
         } @else {
-          <h1 class="mt-1 text-2xl font-bold text-slate-800">Quando você atende?</h1>
+          <h1 class="font-display text-2xl font-bold text-slate-900">Quando você atende?</h1>
           <p class="mt-1 text-sm text-slate-500">Seus clientes só verão horários livres dentro desse período.</p>
         }
       </div>

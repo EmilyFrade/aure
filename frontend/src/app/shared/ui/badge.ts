@@ -23,20 +23,3 @@ export class Badge {
     return `${base} ${variants[this.variant()]}`;
   });
 }
-
-export function badgeForStatus(status: string): BadgeVariant {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'primary';
-    case 'COMPLETED':
-      return 'success';
-    case 'PENDING':
-      return 'warning';
-    case 'CANCELLED':
-      return 'neutral';
-    case 'NO_SHOW':
-      return 'danger';
-    default:
-      return 'neutral';
-  }
-}

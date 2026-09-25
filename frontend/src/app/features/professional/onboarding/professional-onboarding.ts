@@ -7,13 +7,14 @@ import { ToastService } from '../../../shared/feedback/toast.service';
 import { PublicShell } from '../../../shared/layout/public-shell';
 import { Card } from '../../../shared/ui/card';
 import { Button } from '../../../shared/ui/button';
+import { Icon } from '../../../shared/ui/icon';
 import { TextField } from '../../../shared/ui/text-field';
 import { maskPhoneBR, stripSpaces } from '../../../shared/utils/masks';
 import { BR_UFS } from '../../../shared/utils/br-states';
 
 @Component({
   selector: 'app-professional-onboarding',
-  imports: [FormsModule, RouterLink, PublicShell, Card, Button, TextField],
+  imports: [FormsModule, RouterLink, PublicShell, Card, Button, Icon, TextField],
   templateUrl: './professional-onboarding.html'
 })
 export class ProfessionalOnboarding {

@@ -14,13 +14,15 @@ public record SearchResponseDto(
 ) {
 
 	public record SearchResultDto(
+			@JsonProperty("professional_id") Long professionalId,
+			@JsonProperty("professional_name") String professionalName,
+			String bio,
+			@JsonProperty("photo_url") String photoUrl,
 			@JsonProperty("brand_id") Long brandId,
 			@JsonProperty("brand_name") String brandName,
 			String slug,
-			String description,
 			String city,
 			String state,
-			@JsonProperty("logo_url") String logoUrl,
 			List<MatchedServiceDto> services
 	) {}
 

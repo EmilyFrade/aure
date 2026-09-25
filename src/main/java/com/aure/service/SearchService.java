@@ -4,7 +4,8 @@ import com.aure.api.dto.SearchResponseDto;
 import com.aure.api.dto.SearchResponseDto.MatchedServiceDto;
 import com.aure.api.dto.SearchResponseDto.SearchResultDto;
 import com.aure.domain.Brand;
-import com.aure.repository.BrandRepository;
+import com.aure.domain.Professional;
+import com.aure.repository.ProfessionalRepository;
 import com.aure.repository.SearchText;
 import com.aure.repository.ServiceRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,56 +24,59 @@ public class SearchService {
 
 	private static final int MAX_PAGE_SIZE = 50;
 
-	private final BrandRepository brandRepository;
+	private final ProfessionalRepository professionalRepository;
 	private final ServiceRepository serviceRepository;
 
 	@Transactional(readOnly = true)
 	public SearchResponseDto search(String city, String state, String service, int page, int size) {
-		String cityFilter = SearchText.normalize(city);
-		String stateFilter = SearchText.normalize(state);
 		String serviceFilter = SearchText.normalize(service);
 
-		Page<Brand> brands = brandRepository.search(
-				cityFilter,
-				stateFilter,
+		Page<Professional> professionals = professionalRepository.search(
+				SearchText.normalize(city),
+				SearchText.normalize(state),
 				serviceFilter,
 				PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE))
 		);
 
-		Map<Long, List<MatchedServiceDto>> servicesByBrand = servicesByBrand(brands.getContent(), serviceFilter);
+		Map<Long, List<MatchedServiceDto>> servicesByProfessional = servicesByProfessional(professionals.getContent(), serviceFilter);
 
-		List<SearchResultDto> content = brands.getContent().stream()
-				.map(brand -> new SearchResultDto(
-						brand.getId(),
-						brand.getName(),
-						brand.getSlug(),
-						brand.getDescription(),
-						brand.getCity(),
-						brand.getState(),
-						brand.getLogoUrl(),
-						servicesByBrand.getOrDefault(brand.getId(), List.of())
-				))
+		List<SearchResultDto> content = professionals.getContent().stream()
+				.map(professional -> {
+					Brand brand = professional.getBrand();
+					return new SearchResultDto(
+							professional.getId(),
+							professional.getName(),
+							professional.getBio(),
+							professional.getPhotoUrl(),
+							brand.getId(),
+							brand.getName(),
+							brand.getSlug(),
+							brand.getCity(),
+							brand.getState(),
+							servicesByProfessional.getOrDefault(professional.getId(), List.of())
+					);
+				})
 				.toList();
 
 		return new SearchResponseDto(
 				content,
-				brands.getNumber(),
-				brands.getSize(),
-				brands.getTotalElements(),
-				brands.getTotalPages()
+				professionals.getNumber(),
+				professionals.getSize(),
+				professionals.getTotalElements(),
+				professionals.getTotalPages()
 		);
 	}
 
-	private Map<Long, List<MatchedServiceDto>> servicesByBrand(List<Brand> brands, String serviceFilter) {
-		if (brands.isEmpty()) {
+	private Map<Long, List<MatchedServiceDto>> servicesByProfessional(List<Professional> professionals, String serviceFilter) {
+		if (professionals.isEmpty()) {
 			return Map.of();
 		}
 
-		List<Long> brandIds = brands.stream().map(Brand::getId).toList();
+		List<Long> ids = professionals.stream().map(Professional::getId).toList();
 
-		return serviceRepository.findActiveByBrandIds(brandIds, serviceFilter).stream()
+		return serviceRepository.findActiveByProfessionalIds(ids, serviceFilter).stream()
 				.collect(Collectors.groupingBy(
-						s -> s.getProfessional().getBrand().getId(),
+						s -> s.getProfessional().getId(),
 						Collectors.mapping(
 								s -> new MatchedServiceDto(s.getId(), s.getName(), s.getDurationMinutes(), s.getPrice()),
 								Collectors.toList()

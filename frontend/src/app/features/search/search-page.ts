@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SearchResult } from '../../core/models/api.models';
 import { SearchService } from '../../core/services/search.service';
 import { PublicShell } from '../../shared/layout/public-shell';
+import { Avatar } from '../../shared/ui/avatar';
 import { Button } from '../../shared/ui/button';
 import { Card } from '../../shared/ui/card';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -17,7 +18,7 @@ const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-search-page',
-  imports: [FormsModule, RouterLink, PublicShell, Button, Card, EmptyState, Icon, Spinner, TextField],
+  imports: [FormsModule, RouterLink, PublicShell, Avatar, Button, Card, EmptyState, Icon, Spinner, TextField],
   templateUrl: './search-page.html'
 })
 export class SearchPage {

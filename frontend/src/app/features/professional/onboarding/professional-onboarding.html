@@ -8,7 +8,10 @@
     <app-card>
       <form class="space-y-6" (ngSubmit)="submit()">
         <section class="space-y-4">
-          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-primary-500">Seu negócio</h2>
+          <h2 class="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-primary-500">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50"><app-icon name="sparkles" [size]="15" /></span>
+            Seu negócio
+          </h2>
 
           <app-text-field label="Nome do negócio" [required]="true" hint="Aparece no seu link público de agendamento.">
             <input
@@ -44,7 +47,10 @@
         </section>
 
         <section class="space-y-4">
-          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-primary-500">Você</h2>
+          <h2 class="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-primary-500">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50"><app-icon name="user" [size]="15" /></span>
+            Você
+          </h2>
 
           <app-text-field label="Seu nome" [required]="true">
             <input
@@ -70,7 +76,10 @@
         </section>
 
         <section class="space-y-4">
-          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-primary-500">Acesso</h2>
+          <h2 class="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-primary-500">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50"><app-icon name="lock" [size]="15" /></span>
+            Acesso
+          </h2>
 
           <app-text-field label="E-mail" [required]="true" [error]="emailError()">
             <input

@@ -38,9 +38,9 @@ export class Button {
     };
 
     const variants: Record<ButtonVariant, string> = {
-      primary: 'bg-primary-500 text-white shadow-sm hover:bg-primary-600 active:bg-primary-700',
+      primary: 'bg-primary-500 text-white shadow-md shadow-primary-500/25 hover:bg-primary-600 active:bg-primary-700',
       secondary: 'bg-primary-100 text-primary-700 hover:bg-primary-200',
-      outline: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
+      outline: 'border border-primary-100 bg-white text-slate-700 hover:bg-primary-50',
       ghost: 'text-slate-600 hover:bg-slate-100',
       danger: 'border border-accent-200 bg-white text-accent-600 hover:bg-accent-50'
     };

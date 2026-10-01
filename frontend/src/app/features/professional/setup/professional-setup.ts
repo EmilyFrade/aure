@@ -12,6 +12,7 @@ import { Button } from '../../../shared/ui/button';
 import { Card } from '../../../shared/ui/card';
 import { Icon } from '../../../shared/ui/icon';
 import { Spinner } from '../../../shared/ui/spinner';
+import { Stepper } from '../../../shared/ui/stepper';
 import { TextField } from '../../../shared/ui/text-field';
 import { WEEK_DAYS } from '../../../shared/utils/format';
 import { ServiceForm } from '../shared/service-form';
@@ -20,7 +21,7 @@ type Step = 'loading' | 'service' | 'schedule';
 
 @Component({
   selector: 'app-professional-setup',
-  imports: [FormsModule, RouterLink, PublicShell, Card, Button, TextField, Icon, Spinner, ServiceForm],
+  imports: [FormsModule, RouterLink, PublicShell, Card, Button, TextField, Icon, Spinner, Stepper, ServiceForm],
   templateUrl: './professional-setup.html'
 })
 export class ProfessionalSetup {

@@ -105,13 +105,15 @@ export interface MatchedService {
 }
 
 export interface SearchResult {
+  professional_id: number;
+  professional_name: string;
+  bio: string | null;
+  photo_url: string | null;
   brand_id: number;
   brand_name: string;
   slug: string;
-  description: string | null;
   city: string;
   state: string;
-  logo_url: string | null;
   services: MatchedService[];
 }
 
@@ -121,6 +123,17 @@ export interface SearchResponse {
   size: number;
   total_elements: number;
   total_pages: number;
+}
+
+export interface ClientAuthResponse {
+  token: string;
+  name: string | null;
+}
+
+export interface ClientProfile {
+  id: number;
+  name: string | null;
+  phone: string;
 }
 
 export interface ClientOtpRequest {

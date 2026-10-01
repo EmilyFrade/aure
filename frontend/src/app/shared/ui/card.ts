@@ -10,7 +10,7 @@ export class Card {
   readonly padded = input(true);
 
   protected readonly classes = computed(() =>
-    ['rounded-2xl border border-primary-100 bg-white', this.padded() ? 'p-5' : '']
+    ['rounded-2xl bg-white shadow-card ring-1 ring-primary-100/70', this.padded() ? 'p-5' : '']
       .filter(Boolean)
       .join(' ')
   );

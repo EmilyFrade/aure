@@ -16,20 +16,19 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
 
 	Optional<Service> findByIdAndProfessionalId(Long id, Long professionalId);
 
-	default List<Service> findActiveByBrandIds(List<Long> brandIds, String service) {
-		return findActiveByBrandIds(brandIds, service, SearchText.ACCENTED, SearchText.PLAIN);
+	default List<Service> findActiveByProfessionalIds(List<Long> professionalIds, String service) {
+		return findActiveByProfessionalIds(professionalIds, service, SearchText.ACCENTED, SearchText.PLAIN);
 	}
 
 	@Query("""
 			SELECT s FROM Service s
-			WHERE s.professional.brand.id IN :brandIds
+			WHERE s.professional.id IN :professionalIds
 			AND s.active = true
-			AND s.professional.active = true
 			AND LOWER(FUNCTION('translate', s.name, :accented, :plain)) LIKE CONCAT('%', :service, '%')
 			ORDER BY s.price
 			""")
-	List<Service> findActiveByBrandIds(
-			@Param("brandIds") List<Long> brandIds,
+	List<Service> findActiveByProfessionalIds(
+			@Param("professionalIds") List<Long> professionalIds,
 			@Param("service") String service,
 			@Param("accented") String accented,
 			@Param("plain") String plain

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { finalize, Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { AuthResponse, LoginRequest, SignupRequest } from '../models/api.models';
 import { SessionStore } from './session-store';
@@ -24,7 +24,7 @@ export class ProfessionalAuthService {
 
   logout(): Observable<void> {
     return this.http.post<void>(`${API_BASE_URL}/auth/logout`, {}).pipe(
-      tap(() => this.session.clearProfessionalSession())
+      finalize(() => this.session.clearProfessionalSession())
     );
   }
 

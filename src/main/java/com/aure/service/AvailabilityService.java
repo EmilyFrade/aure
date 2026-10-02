@@ -31,6 +31,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AvailabilityService {
 
+	private static final int SLOT_STEP_MINUTES = 30;
+
 	private final ProfessionalScheduleRepository scheduleRepository;
 	private final ProfessionalBlockRepository blockRepository;
 	private final AppointmentRepository appointmentRepository;
@@ -130,10 +132,16 @@ public class AvailabilityService {
 		List<Appointment> appointments = appointmentRepository
 				.findByProfessionalIdAndScheduledDateAndStatusNot(professionalId, date, AppointmentStatus.CANCELLED);
 
+		LocalDateTime now = LocalDateTime.now();
+
 		List<LocalTime> freeSlots = allSlots.stream()
 			.filter(slot -> {
 				LocalDateTime slotStart = date.atTime(slot);
 				LocalDateTime slotEnd = slotStart.plusMinutes(service.getDurationMinutes());
+
+				if (!slotStart.isAfter(now)) {
+					return false;
+				}
 
 				boolean blockedByScheduleBlock = blocks.stream().anyMatch(block ->
 						slotStart.isBefore(block.getEndDatetime()) && slotEnd.isAfter(block.getStartDatetime()));
@@ -167,11 +175,12 @@ public class AvailabilityService {
 	}
 
 	private List<LocalTime> generateSlots(LocalTime start, LocalTime end, int durationMinutes) {
+		int startMinute = start.getHour() * 60 + start.getMinute();
+		int endMinute = end.getHour() * 60 + end.getMinute();
+
 		List<LocalTime> slots = new ArrayList<>();
-		LocalTime current = start;
-		while (!current.plusMinutes(durationMinutes).isAfter(end)) {
-			slots.add(current);
-			current = current.plusMinutes(durationMinutes);
+		for (int minute = startMinute; minute + durationMinutes <= endMinute; minute += SLOT_STEP_MINUTES) {
+			slots.add(LocalTime.of(minute / 60, minute % 60));
 		}
 		return slots;
 	}

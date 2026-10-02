@@ -280,68 +280,48 @@
           Voltar para horários
         </button>
 
-        <h1 class="font-display text-2xl font-bold text-slate-900">Confirme seu agendamento</h1>
+        <h1 class="font-display text-xl font-bold text-slate-900 sm:text-2xl">Confirme seu agendamento</h1>
         <p class="mt-1 mb-5 text-sm text-slate-500">Revise os detalhes antes de finalizar.</p>
 
         <div class="grid gap-4 lg:grid-cols-[1.15fr_1fr] lg:items-start">
-          <div class="space-y-4">
-            <app-card [padded]="false">
-              <div class="flex items-center gap-3 rounded-t-2xl border-b border-primary-100 bg-primary-50/60 p-4">
-                <app-avatar [name]="professional.name" [photoUrl]="professional.photo_url" [size]="48" />
-                <div class="min-w-0">
-                  <p class="truncate font-display font-semibold text-slate-900">{{ professional.name }}</p>
-                  <p class="truncate text-sm text-slate-500">{{ profile()!.brand_name }}</p>
-                </div>
+          <app-card [padded]="false">
+            <div class="flex items-center gap-3 rounded-t-2xl border-b border-primary-100 bg-primary-50/60 p-4">
+              <app-avatar [name]="professional.name" [photoUrl]="professional.photo_url" [size]="48" />
+              <div class="min-w-0">
+                <p class="truncate font-display font-semibold text-slate-900">{{ professional.name }}</p>
+                <p class="truncate text-sm text-slate-500">{{ profile()!.brand_name }}</p>
               </div>
+            </div>
 
-              <dl class="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
-                <div class="flex gap-2.5">
-                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500">
-                    <app-icon name="calendar" [size]="16" />
-                  </span>
-                  <div class="min-w-0">
-                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Data</dt>
-                    <dd class="text-sm font-medium text-slate-800">{{ describeDate(selectedDate()) }}</dd>
-                  </div>
-                </div>
-                <div class="flex gap-2.5">
-                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500">
-                    <app-icon name="clock" [size]="16" />
-                  </span>
-                  <div class="min-w-0">
-                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Horário</dt>
-                    <dd class="text-sm font-medium text-slate-800">{{ selectedSlot() }} – {{ slotEnd() }}</dd>
-                  </div>
-                </div>
-                <div class="flex gap-2.5">
-                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blush-50 text-blush-500">
-                    <app-icon name="sparkles" [size]="16" />
-                  </span>
-                  <div class="min-w-0">
-                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Serviço</dt>
-                    <dd class="text-sm font-medium text-slate-800">{{ service.name }}</dd>
-                  </div>
-                </div>
-                @if (profile()!.city) {
-                  <div class="flex gap-2.5">
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blush-50 text-blush-500">
-                      <app-icon name="map-pin" [size]="16" />
-                    </span>
-                    <div class="min-w-0">
-                      <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Local</dt>
-                      <dd class="text-sm font-medium text-slate-800">{{ profile()!.city }} · {{ profile()!.state }}</dd>
-                    </div>
-                  </div>
-                }
-              </dl>
-
-              <div class="flex items-center justify-between rounded-b-2xl border-t border-primary-100 p-4">
-                <span class="text-sm text-slate-500">Total a pagar no local</span>
-                <span class="font-display text-xl font-bold text-primary-600">{{ formatPrice(service.price) }}</span>
+            <dl class="divide-y divide-primary-50 px-4 py-1">
+              <div class="flex items-center gap-3 py-2">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500">
+                  <app-icon name="calendar" [size]="15" />
+                </span>
+                <dt class="text-sm text-slate-500">Data</dt>
+                <dd class="ml-auto text-right text-sm font-medium text-slate-800">{{ describeDate(selectedDate()) }}</dd>
               </div>
-            </app-card>
+              <div class="flex items-center gap-3 py-2">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500">
+                  <app-icon name="clock" [size]="15" />
+                </span>
+                <dt class="text-sm text-slate-500">Horário</dt>
+                <dd class="ml-auto text-right text-sm font-medium text-slate-800">{{ selectedSlot() }} – {{ slotEnd() }}</dd>
+              </div>
+              <div class="flex items-center gap-3 py-2">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blush-50 text-blush-500">
+                  <app-icon name="sparkles" [size]="15" />
+                </span>
+                <dt class="text-sm text-slate-500">Serviço</dt>
+                <dd class="ml-auto text-right text-sm font-medium text-slate-800">{{ service.name }}</dd>
+              </div>
+            </dl>
 
-          </div>
+            <div class="flex items-center justify-between rounded-b-2xl border-t border-primary-100 p-4">
+              <span class="text-sm text-slate-500">Total a pagar no local</span>
+              <span class="font-display text-xl font-bold text-primary-600">{{ formatPrice(service.price) }}</span>
+            </div>
+          </app-card>
 
           <app-card class="lg:p-6">
             <div class="text-center">

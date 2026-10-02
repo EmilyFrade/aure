@@ -22,6 +22,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
 	List<Appointment> findByProfessionalIdAndScheduledDateAndStatusNot(Long professionalId, LocalDate scheduledDate, AppointmentStatus status);
 
+	List<Appointment> findByClientIdAndScheduledDateAndStatusNot(Long clientId, LocalDate scheduledDate, AppointmentStatus status);
+
 	Optional<Appointment> findByIdAndClientId(Long id, Long clientId);
 
 	boolean existsByServiceId(Long serviceId);

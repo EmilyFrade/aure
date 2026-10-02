@@ -38,6 +38,7 @@ public class SecurityConfig {
 			.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/signup").permitAll()
+				.requestMatchers("/auth/client/me").hasRole("CLIENT")
 				.requestMatchers("/auth/client/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/p/**", "/search").permitAll()
 				.requestMatchers(HttpMethod.GET, "/professionals/*/availability").permitAll()

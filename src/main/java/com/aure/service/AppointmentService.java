@@ -54,6 +54,7 @@ public class AppointmentService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado"));
 
 		checkConflict(professional.getId(), request.scheduledDate(), request.scheduledTime(), service.getDurationMinutes());
+		checkClientConflict(client.getId(), request.scheduledDate(), request.scheduledTime(), service.getDurationMinutes());
 
 		Appointment appointment = Appointment.builder()
 				.professional(professional)
@@ -207,21 +208,30 @@ public class AppointmentService {
 	}
 
 	private void checkConflict(Long professionalId, LocalDate scheduledDate, LocalTime newStart, int durationMinutes) {
-		LocalTime newEnd = newStart.plusMinutes(durationMinutes);
+		List<Appointment> existing = appointmentRepository.findByProfessionalIdAndScheduledDateAndStatusNot(
+				professionalId, scheduledDate, AppointmentStatus.CANCELLED);
 
-		boolean hasConflict = appointmentRepository
-				.findByProfessionalIdAndScheduledDateAndStatusNot(
-						professionalId, scheduledDate, AppointmentStatus.CANCELLED)
-				.stream()
-				.anyMatch(existing -> {
-					LocalTime existingStart = existing.getScheduledTime();
-					LocalTime existingEnd = existingStart.plusMinutes(existing.getDurationMinutes());
-					return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
-				});
-
-		if (hasConflict) {
+		if (overlaps(existing, newStart, durationMinutes)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Horário indisponível");
 		}
+	}
+
+	private void checkClientConflict(Long clientId, LocalDate scheduledDate, LocalTime newStart, int durationMinutes) {
+		List<Appointment> existing = appointmentRepository.findByClientIdAndScheduledDateAndStatusNot(
+				clientId, scheduledDate, AppointmentStatus.CANCELLED);
+
+		if (overlaps(existing, newStart, durationMinutes)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Você já tem um agendamento nesse horário");
+		}
+	}
+
+	private boolean overlaps(List<Appointment> existing, LocalTime newStart, int durationMinutes) {
+		LocalTime newEnd = newStart.plusMinutes(durationMinutes);
+		return existing.stream().anyMatch(appointment -> {
+			LocalTime existingStart = appointment.getScheduledTime();
+			LocalTime existingEnd = existingStart.plusMinutes(appointment.getDurationMinutes());
+			return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+		});
 	}
 
 	private Client currentClient() {

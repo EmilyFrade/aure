@@ -1,189 +1,498 @@
-<div class="min-h-screen bg-gray-50 flex justify-center px-4 py-10">
-  <div class="w-full max-w-xl">
+<app-public-shell>
+  <div class="mx-auto" [class]="containerClass()">
+    @switch (step()) {
+      @case ('loading') {
+        <div class="flex justify-center py-16 text-primary-500"><app-spinner /></div>
+      }
 
-    @if (step() === 'loading') {
-      <p class="text-center text-gray-500">Carregando...</p>
-    }
+      @case ('not-found') {
+        <app-card>
+          <app-empty-state
+            icon="search"
+            title="Link não encontrado"
+            description="Confira se o endereço está correto ou procure o profissional pela busca.">
+            <a
+              routerLink="/buscar"
+              class="inline-flex items-center gap-2 rounded-xl bg-primary-100 px-4 py-2 text-sm font-medium text-primary-700 transition hover:bg-primary-200">
+              <app-icon name="search" [size]="16" />
+              Buscar profissionais
+            </a>
+          </app-empty-state>
+        </app-card>
+      }
 
-    @if (step() === 'not-found') {
-      <div class="bg-white rounded-lg shadow p-6 text-center">
-        <h1 class="text-lg font-semibold text-gray-800">Link não encontrado</h1>
-        <p class="text-gray-500 mt-2">Verifique se o endereço está correto.</p>
-      </div>
-    }
+      @case ('profile') {
+        @let brand = profile()!;
+        @let solo = soloProfessional();
 
-    @if (profile() && step() !== 'loading' && step() !== 'not-found') {
-      <header class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-gray-900">{{ profile()!.brand_name }}</h1>
-        @if (profile()!.city) {
-          <p class="text-gray-500">{{ profile()!.city }} - {{ profile()!.state }}</p>
-        }
-      </header>
-    }
+        <div class="grid gap-6 lg:grid-cols-[320px_1fr] lg:items-start lg:gap-10">
+          <aside class="text-center lg:sticky lg:top-24 lg:text-left">
+            <app-card class="lg:p-6">
+              <div class="flex flex-col items-center lg:items-start">
+                <app-avatar
+                  [name]="solo?.name || brand.brand_name"
+                  [photoUrl]="solo?.photo_url"
+                  [size]="96"
+                  class="ring-4 ring-primary-100" />
+                <h1 class="mt-4 font-display text-2xl font-bold text-slate-900">{{ brand.brand_name }}</h1>
+                @if (solo && solo.name !== brand.brand_name) {
+                  <p class="mt-0.5 text-sm font-medium text-primary-600">com {{ solo.name }}</p>
+                }
+                @if (brand.city) {
+                  <p class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-slate-600">
+                    <span class="text-primary-400"><app-icon name="map-pin" [size]="14" /></span>
+                    {{ brand.city }} · {{ brand.state }}
+                  </p>
+                }
+              </div>
 
-    @if (errorMessage()) {
-      <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2 text-sm">
-        {{ errorMessage() }}
-      </div>
-    }
-
-    @if (step() === 'choose' && profile()) {
-      <div class="space-y-6">
-        @for (professional of profile()!.professionals; track professional.id) {
-          <div class="bg-white rounded-lg shadow p-5">
-            <h2 class="font-semibold text-gray-800 text-lg">{{ professional.name }}</h2>
-            @if (professional.bio) {
-              <p class="text-gray-500 text-sm mt-1">{{ professional.bio }}</p>
-            }
-            <ul class="mt-4 space-y-2">
-              @for (service of professional.services; track service.id) {
-                <li>
-                  <button
-                    type="button"
-                    (click)="chooseService(professional, service)"
-                    class="w-full flex items-center justify-between rounded-md border border-gray-200 px-4 py-3 text-left hover:border-indigo-400 hover:bg-indigo-50 transition"
-                  >
-                    <span>
-                      <span class="font-medium text-gray-800">{{ service.name }}</span>
-                      <span class="block text-xs text-gray-500">{{ service.duration_minutes }} min</span>
-                    </span>
-                    <span class="font-semibold text-indigo-600">R$ {{ service.price }}</span>
-                  </button>
-                </li>
+              @if (solo?.bio) {
+                <p class="mt-4 text-sm leading-relaxed text-slate-600">{{ solo!.bio }}</p>
               }
-            </ul>
-          </div>
-        }
-      </div>
-    }
 
-    @if (step() === 'schedule' && selectedProfessional() && selectedService()) {
-      <div class="bg-white rounded-lg shadow p-6">
-        <button type="button" (click)="backToChoose()" class="text-sm text-indigo-600 mb-4">&larr; Voltar</button>
-        <h2 class="font-semibold text-gray-800">
-          {{ selectedService()!.name }} com {{ selectedProfessional()!.name }}
-        </h2>
+              @if (brand.description) {
+                <div class="mt-5 border-t border-primary-100 pt-4 text-left">
+                  <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <app-icon name="map-pin" [size]="14" />
+                    Sobre o espaço
+                  </p>
+                  <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ brand.description }}</p>
+                </div>
+              }
+            </app-card>
+          </aside>
 
-        <label class="block mt-4 text-sm font-medium text-gray-700">Data</label>
-        <input
-          type="date"
-          [min]="today"
-          [ngModel]="selectedDate()"
-          (ngModelChange)="selectedDate.set($event); loadAvailability()"
-          class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
-        />
-
-        <div class="mt-4">
-          @if (slots().length === 0) {
-            <p class="text-gray-500 text-sm">Nenhum horário disponível nessa data.</p>
-          } @else {
-            <div class="grid grid-cols-3 gap-2">
-              @for (slot of slots(); track slot) {
-                <button
-                  type="button"
-                  (click)="pickSlot(slot)"
-                  class="rounded-md border border-gray-300 py-2 text-sm hover:border-indigo-500 hover:bg-indigo-50"
-                >
-                  {{ slot }}
-                </button>
+          <section>
+            <div class="mb-4 flex items-end justify-between gap-3">
+              <div>
+                <h2 class="flex items-center gap-2 font-display text-xl font-semibold text-slate-900">
+                  <span class="text-primary-500"><app-icon name="calendar" [size]="20" /></span>
+                  Serviços
+                </h2>
+                <p class="mt-0.5 text-sm text-slate-500">Escolha o serviço para ver os horários livres.</p>
+              </div>
+              @if (serviceCount()) {
+                <span class="hidden shrink-0 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-primary-100 sm:inline-flex">
+                  {{ serviceCount() }} {{ serviceCount() === 1 ? 'serviço' : 'serviços' }}
+                </span>
               }
             </div>
-          }
+
+            @if (focused() && bookable().length > 1) {
+              <button
+                type="button"
+                class="mb-4 flex w-full items-center gap-3 rounded-2xl bg-white p-3 text-left text-sm shadow-card ring-1 ring-primary-100/70 transition hover:bg-primary-50"
+                (click)="showAll()">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
+                  <app-icon name="users" [size]="18" />
+                </span>
+                <span class="min-w-0 flex-1 text-slate-600">
+                  Mais {{ bookable().length - 1 }} {{ bookable().length - 1 === 1 ? 'profissional' : 'profissionais' }} no
+                  {{ brand.brand_name }}
+                </span>
+                <span class="flex shrink-0 items-center gap-0.5 font-medium text-primary-600">
+                  Ver todos
+                  <app-icon name="chevron-right" [size]="16" />
+                </span>
+              </button>
+            }
+
+            @if (bookable().length === 0) {
+              <app-card>
+                <app-empty-state
+                  icon="calendar"
+                  title="Nenhum serviço disponível"
+                  description="Este profissional ainda não publicou serviços para agendamento online." />
+              </app-card>
+            } @else {
+              <div class="space-y-6">
+                @for (professional of visible(); track professional.id) {
+                  <div>
+                    @if (!solo) {
+                      <div class="mb-3 flex items-center gap-3">
+                        <app-avatar [name]="professional.name" [photoUrl]="professional.photo_url" [size]="40" />
+                        <div class="min-w-0">
+                          <p class="font-semibold text-slate-800">{{ professional.name }}</p>
+                          @if (professional.bio) {
+                            <p class="line-clamp-2 text-sm text-slate-500">{{ professional.bio }}</p>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <div class="space-y-3">
+                      @for (service of professional.services; track service.id) {
+                        <app-card>
+                          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                            <div class="min-w-0 flex-1">
+                              <div class="flex items-start justify-between gap-3">
+                                <p class="font-display text-base font-semibold text-slate-900">{{ service.name }}</p>
+                                <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-600 sm:hidden">
+                                  <app-icon name="tag" [size]="12" />
+                                  {{ formatPrice(service.price) }}
+                                </span>
+                              </div>
+                              @if (service.description) {
+                                <p class="mt-1 line-clamp-2 text-sm text-slate-500">{{ service.description }}</p>
+                              }
+                              <p class="mt-2 hidden items-center gap-3 text-sm sm:flex">
+                                <span class="inline-flex items-center gap-1 text-slate-500">
+                                  <app-icon name="clock" [size]="15" />
+                                  {{ formatDuration(service.duration_minutes) }}
+                                </span>
+                                <span class="font-semibold text-primary-600">{{ formatPrice(service.price) }}</span>
+                              </p>
+                            </div>
+
+                            <div class="flex items-center justify-between border-t border-primary-100 pt-3 sm:border-0 sm:pt-0">
+                              <span class="inline-flex items-center gap-1 text-sm text-slate-500 sm:hidden">
+                                <app-icon name="clock" [size]="15" />
+                                {{ formatDuration(service.duration_minutes) }}
+                              </span>
+                              <app-button variant="secondary" size="sm" (click)="chooseService(professional, service)">
+                                Agendar
+                                <app-icon name="chevron-right" [size]="16" />
+                              </app-button>
+                            </div>
+                          </div>
+                        </app-card>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+            }
+          </section>
         </div>
-      </div>
-    }
+      }
 
-    @if (step() === 'identify') {
-      <div class="bg-white rounded-lg shadow p-6">
-        <button type="button" (click)="backToSchedule()" class="text-sm text-indigo-600 mb-4">&larr; Voltar</button>
-        <h2 class="font-semibold text-gray-800">Confirme seu telefone</h2>
-        <p class="text-gray-500 text-sm mt-1">Enviaremos um código de verificação.</p>
+      @case ('schedule') {
+        @let service = selectedService()!;
 
-        <input
-          type="tel"
-          placeholder="(31) 99999-9999"
-          [ngModel]="phone()"
-          (ngModelChange)="phone.set($event)"
-          class="mt-4 w-full rounded-md border border-gray-300 px-3 py-2"
-        />
+        <app-stepper [steps]="steps" [current]="1" class="mb-5" />
+
+        <div class="mb-5 flex items-center gap-3 rounded-2xl bg-primary-50 p-4 ring-1 ring-primary-100">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-primary-500 shadow-card">
+            <app-icon name="sparkles" [size]="20" />
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-primary-500">Serviço selecionado</p>
+            <p class="truncate font-display font-semibold text-slate-900">{{ service.name }}</p>
+            <p class="text-sm text-primary-600">
+              {{ formatDuration(service.duration_minutes) }} · {{ formatPrice(service.price) }}
+              @if (!soloProfessional()) {
+                · com {{ selectedProfessional()!.name }}
+              }
+            </p>
+          </div>
+          <button type="button" class="shrink-0 text-sm font-medium text-primary-600 hover:text-primary-700" (click)="backToProfile()">
+            Alterar
+          </button>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2 lg:items-start">
+          <app-card>
+            <app-calendar [selected]="selectedDate()" (selectedChange)="pickDate($event)" [min]="today" [max]="maxDate" />
+          </app-card>
+
+          <app-card>
+            <div class="mb-4 border-b border-primary-100 pb-3">
+              <p class="font-display text-base font-semibold text-slate-800">Horários disponíveis</p>
+              <p class="text-sm text-slate-500">{{ describeDate(selectedDate()) }}</p>
+            </div>
+
+            @if (loadingSlots()) {
+              <div class="flex justify-center py-10 text-primary-500"><app-spinner /></div>
+            } @else if (slotGroups().length === 0) {
+              <app-empty-state
+                icon="clock"
+                title="Sem horários nesse dia"
+                description="Escolha outra data no calendário para ver os horários livres." />
+            } @else {
+              <div class="space-y-4">
+                @for (group of slotGroups(); track group.label) {
+                  <div>
+                    <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <span class="text-primary-400"><app-icon [name]="group.icon" [size]="15" /></span>
+                      {{ group.label }}
+                    </p>
+                    <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-3">
+                      @for (slot of group.slots; track slot) {
+                        <button
+                          type="button"
+                          (click)="pickSlot(slot)"
+                          [attr.aria-pressed]="selectedSlot() === slot"
+                          class="rounded-xl py-2.5 text-sm font-medium transition"
+                          [class]="
+                            selectedSlot() === slot
+                              ? 'bg-primary-500 text-white shadow-md shadow-primary-500/30'
+                              : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                          ">
+                          {{ slot }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </app-card>
+        </div>
+
+        <app-action-bar>
+          <div class="flex items-center gap-3 sm:justify-end">
+            <button
+              type="button"
+              class="hidden text-sm font-medium text-slate-500 hover:text-slate-700 sm:mr-2 sm:inline"
+              (click)="backToProfile()">
+              Voltar
+            </button>
+            <div class="min-w-0 flex-1 sm:flex-none sm:text-right">
+              @if (selectedSlot()) {
+                <p class="text-xs text-slate-500">Horário escolhido</p>
+                <p class="truncate text-sm font-semibold text-slate-800">
+                  {{ shortDate(selectedDate()) }}, às {{ selectedSlot() }}
+                </p>
+              } @else {
+                <p class="text-sm italic text-slate-400">Escolha um horário</p>
+              }
+            </div>
+            <app-button [disabled]="!selectedSlot()" (click)="advance()">
+              Avançar
+              <app-icon name="arrow-right" [size]="16" />
+            </app-button>
+          </div>
+        </app-action-bar>
+      }
+
+      @case ('confirm') {
+        @let service = selectedService()!;
+        @let professional = selectedProfessional()!;
+
+        <app-stepper [steps]="steps" [current]="2" class="mb-5" />
 
         <button
           type="button"
-          [disabled]="submitting()"
-          (click)="requestCode()"
-          class="mt-4 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
-        >
-          {{ submitting() ? 'Enviando...' : 'Enviar código' }}
+          class="mb-3 inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition hover:text-primary-700"
+          (click)="backToSchedule()">
+          <app-icon name="chevron-left" [size]="16" />
+          Voltar para horários
         </button>
-      </div>
+
+        <h1 class="font-display text-2xl font-bold text-slate-900">Confirme seu agendamento</h1>
+        <p class="mt-1 mb-5 text-sm text-slate-500">Revise os detalhes antes de finalizar.</p>
+
+        <div class="grid gap-4 lg:grid-cols-[1.15fr_1fr] lg:items-start">
+          <div class="space-y-4">
+            <app-card [padded]="false">
+              <div class="flex items-center gap-3 rounded-t-2xl border-b border-primary-100 bg-primary-50/60 p-4">
+                <app-avatar [name]="professional.name" [photoUrl]="professional.photo_url" [size]="48" />
+                <div class="min-w-0">
+                  <p class="truncate font-display font-semibold text-slate-900">{{ professional.name }}</p>
+                  <p class="truncate text-sm text-slate-500">{{ profile()!.brand_name }}</p>
+                </div>
+              </div>
+
+              <dl class="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
+                <div class="flex gap-2.5">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500">
+                    <app-icon name="calendar" [size]="16" />
+                  </span>
+                  <div class="min-w-0">
+                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Data</dt>
+                    <dd class="text-sm font-medium text-slate-800">{{ describeDate(selectedDate()) }}</dd>
+                  </div>
+                </div>
+                <div class="flex gap-2.5">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500">
+                    <app-icon name="clock" [size]="16" />
+                  </span>
+                  <div class="min-w-0">
+                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Horário</dt>
+                    <dd class="text-sm font-medium text-slate-800">{{ selectedSlot() }} – {{ slotEnd() }}</dd>
+                  </div>
+                </div>
+                <div class="flex gap-2.5">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blush-50 text-blush-500">
+                    <app-icon name="sparkles" [size]="16" />
+                  </span>
+                  <div class="min-w-0">
+                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Serviço</dt>
+                    <dd class="text-sm font-medium text-slate-800">{{ service.name }}</dd>
+                  </div>
+                </div>
+                @if (profile()!.city) {
+                  <div class="flex gap-2.5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blush-50 text-blush-500">
+                      <app-icon name="map-pin" [size]="16" />
+                    </span>
+                    <div class="min-w-0">
+                      <dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Local</dt>
+                      <dd class="text-sm font-medium text-slate-800">{{ profile()!.city }} · {{ profile()!.state }}</dd>
+                    </div>
+                  </div>
+                }
+              </dl>
+
+              <div class="flex items-center justify-between rounded-b-2xl border-t border-primary-100 p-4">
+                <span class="text-sm text-slate-500">Total a pagar no local</span>
+                <span class="font-display text-xl font-bold text-primary-600">{{ formatPrice(service.price) }}</span>
+              </div>
+            </app-card>
+
+          </div>
+
+          <app-card class="lg:p-6">
+            <div class="text-center">
+              <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-primary-500">
+                <app-icon name="shield" [size]="26" />
+              </span>
+
+              @switch (verifyPhase()) {
+                @case ('checking') {
+                  <div class="flex justify-center py-6 text-primary-500"><app-spinner /></div>
+                }
+                @case ('ready') {
+                  <h2 class="mt-3 font-display text-lg font-semibold text-slate-900">
+                    Tudo pronto{{ firstName() ? ', ' + firstName() : '' }}!
+                  </h2>
+                  <p class="mt-1 text-sm text-slate-500">Seu WhatsApp {{ phone() }} já está confirmado.</p>
+                  <button
+                    type="button"
+                    class="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700"
+                    (click)="useAnotherNumber()">
+                    Não é você? Usar outro número
+                  </button>
+                }
+                @case ('name') {
+                  <h2 class="mt-3 font-display text-lg font-semibold text-slate-900">Como podemos te chamar?</h2>
+                  <p class="mt-1 text-sm text-slate-500">
+                    É assim que {{ professional.name }} vai ver seu agendamento.
+                  </p>
+                  <form class="mt-4 text-left" (ngSubmit)="confirm()">
+                    <app-text-field label="Seu nome" [required]="true">
+                      <input
+                        class="field-input"
+                        name="clientName"
+                        [ngModel]="nameInput()"
+                        (ngModelChange)="nameInput.set($event)"
+                        maxlength="120"
+                        placeholder="Nome e sobrenome"
+                        autocomplete="name" />
+                    </app-text-field>
+                  </form>
+                }
+                @case ('phone') {
+                  <h2 class="mt-3 font-display text-lg font-semibold text-slate-900">Confirme pelo WhatsApp</h2>
+                  <p class="mt-1 text-sm text-slate-500">Enviaremos um código de 6 dígitos para o seu número.</p>
+                  <form class="mt-4 text-left" (ngSubmit)="requestCode()">
+                    <app-text-field label="Telefone (WhatsApp)" [required]="true">
+                      <input
+                        class="field-input"
+                        name="phone"
+                        [ngModel]="phone()"
+                        (ngModelChange)="phone.set(maskPhone($event))"
+                        inputmode="tel"
+                        maxlength="15"
+                        placeholder="(31) 99999-9999"
+                        autocomplete="tel" />
+                    </app-text-field>
+                  </form>
+                }
+                @case ('code') {
+                  <h2 class="mt-3 font-display text-lg font-semibold text-slate-900">Digite o código</h2>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Enviamos um código para <span class="font-medium text-slate-700">{{ phone() }}</span>.
+                  </p>
+                  <app-otp-input class="mt-4" [value]="otp()" (valueChange)="onOtpChange($event)" />
+                  @if (otpError()) {
+                    <p class="mt-2 text-sm text-accent-600">{{ otpError() }}</p>
+                  }
+                  <div class="mt-3 flex items-center justify-center gap-3 text-sm">
+                    @if (resendIn() > 0) {
+                      <span class="text-slate-400">Reenviar em {{ resendIn() }}s</span>
+                    } @else {
+                      <button type="button" class="font-medium text-primary-600 hover:text-primary-700" (click)="requestCode()">
+                        Reenviar código
+                      </button>
+                    }
+                    <span class="text-slate-300">·</span>
+                    <button type="button" class="font-medium text-slate-500 hover:text-slate-700" (click)="changePhone()">
+                      Alterar número
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+
+            <app-action-bar>
+              @switch (verifyPhase()) {
+                @case ('phone') {
+                  <app-button [full]="true" [loading]="sendingCode()" [disabled]="!canRequestCode()" (click)="requestCode()">
+                    Enviar código
+                  </app-button>
+                }
+                @case ('code') {
+                  <app-button [full]="true" [loading]="verifying()" [disabled]="otp().length < 6" (click)="verifyCode()">
+                    Verificar código
+                  </app-button>
+                }
+                @default {
+                  <app-button
+                    [full]="true"
+                    [loading]="submitting() || verifyPhase() === 'checking'"
+                    [disabled]="!canConfirm()"
+                    (click)="confirm()">
+                    Confirmar agendamento
+                  </app-button>
+                }
+              }
+            </app-action-bar>
+          </app-card>
+        </div>
+      }
+
+      @case ('done') {
+        @let appointment = confirmed()!;
+
+        <app-card class="lg:p-8">
+          <div class="flex flex-col items-center text-center">
+            <span class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
+              <app-icon name="check-circle" [size]="32" />
+            </span>
+            <h1 class="mt-4 font-display text-2xl font-bold text-slate-900">Agendamento confirmado!</h1>
+            <p class="mt-1 text-sm text-slate-500">Guardamos seu horário com {{ appointment.professional_name }}.</p>
+          </div>
+
+          <dl class="mt-6 space-y-3 rounded-2xl bg-primary-50/60 p-4 text-sm">
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Serviço</dt>
+              <dd class="text-right font-medium text-slate-800">{{ appointment.service_name }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Quando</dt>
+              <dd class="text-right font-medium text-slate-800">
+                {{ describeDate(appointment.scheduled_date) }}, às {{ appointment.scheduled_time }}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Valor</dt>
+              <dd class="text-right font-semibold text-primary-600">{{ formatPrice(appointment.price) }}</dd>
+            </div>
+          </dl>
+
+
+          <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+            <app-button variant="outline" [full]="true" (click)="bookAnother()">Agendar outro serviço</app-button>
+            <a
+              routerLink="/buscar"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
+              Buscar outros profissionais
+            </a>
+          </div>
+        </app-card>
+      }
     }
-
-    @if (step() === 'verify') {
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="font-semibold text-gray-800">Digite o código recebido</h2>
-        <p class="text-gray-500 text-sm mt-1">Código válido por 10 minutos.</p>
-
-        <input
-          type="text"
-          inputmode="numeric"
-          placeholder="000000"
-          [ngModel]="otpCode()"
-          (ngModelChange)="otpCode.set($event)"
-          class="mt-4 w-full rounded-md border border-gray-300 px-3 py-2 text-center text-lg tracking-widest"
-        />
-
-        <button
-          type="button"
-          [disabled]="submitting()"
-          (click)="verifyCode()"
-          class="mt-4 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
-        >
-          {{ submitting() ? 'Verificando...' : 'Confirmar código' }}
-        </button>
-      </div>
-    }
-
-    @if (step() === 'confirm' && selectedService() && selectedProfessional()) {
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="font-semibold text-gray-800">Revise seu agendamento</h2>
-        <dl class="mt-4 space-y-2 text-sm">
-          <div class="flex justify-between"><dt class="text-gray-500">Profissional</dt><dd>{{ selectedProfessional()!.name }}</dd></div>
-          <div class="flex justify-between"><dt class="text-gray-500">Serviço</dt><dd>{{ selectedService()!.name }}</dd></div>
-          <div class="flex justify-between"><dt class="text-gray-500">Data</dt><dd>{{ selectedDate() }}</dd></div>
-          <div class="flex justify-between"><dt class="text-gray-500">Horário</dt><dd>{{ selectedSlot() }}</dd></div>
-          <div class="flex justify-between"><dt class="text-gray-500">Valor</dt><dd>R$ {{ selectedService()!.price }}</dd></div>
-        </dl>
-
-        <label class="block mt-4 text-sm font-medium text-gray-700">Observações (opcional)</label>
-        <textarea
-          [ngModel]="notes()"
-          (ngModelChange)="notes.set($event)"
-          rows="2"
-          class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
-        ></textarea>
-
-        <button
-          type="button"
-          [disabled]="submitting()"
-          (click)="confirmAppointment()"
-          class="mt-4 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
-        >
-          {{ submitting() ? 'Confirmando...' : 'Confirmar agendamento' }}
-        </button>
-      </div>
-    }
-
-    @if (step() === 'done' && confirmedAppointment()) {
-      <div class="bg-white rounded-lg shadow p-6 text-center">
-        <h2 class="font-semibold text-green-700 text-lg">Agendamento confirmado!</h2>
-        <p class="text-gray-600 mt-2">
-          {{ confirmedAppointment()!.service_name }} com {{ confirmedAppointment()!.professional_name }}
-        </p>
-        <p class="text-gray-600">
-          {{ confirmedAppointment()!.scheduled_date }} às {{ confirmedAppointment()!.scheduled_time }}
-        </p>
-      </div>
-    }
-
   </div>
-</div>
+</app-public-shell>

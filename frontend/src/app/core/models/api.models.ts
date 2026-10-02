@@ -188,7 +188,8 @@ export interface AppointmentResponse {
   professional_id: number;
   professional_name: string;
   client_id: number;
-  client_name: string;
+  client_name: string | null;
+  client_phone: string;
   service_id: number;
   service_name: string;
   scheduled_date: string;
@@ -197,6 +198,15 @@ export interface AppointmentResponse {
   price: number;
   status: AppointmentStatus;
   notes: string | null;
+}
+
+export interface ManualAppointmentRequest {
+  service_id: number;
+  scheduled_date: string;
+  scheduled_time: string;
+  client_phone: string;
+  client_name?: string;
+  notes?: string;
 }
 
 export interface AppointmentStatusUpdate {

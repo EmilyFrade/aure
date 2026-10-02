@@ -27,7 +27,7 @@ import { OtpInput } from '../../shared/ui/otp-input';
 import { Spinner } from '../../shared/ui/spinner';
 import { Stepper } from '../../shared/ui/stepper';
 import { TextField } from '../../shared/ui/text-field';
-import { formatDuration, formatPrice } from '../../shared/utils/format';
+import { apiErrorMessage, formatDuration, formatPrice } from '../../shared/utils/format';
 import { digitsOnly, maskPhoneBR } from '../../shared/utils/masks';
 
 type Step = 'loading' | 'not-found' | 'profile' | 'schedule' | 'confirm' | 'done';
@@ -355,7 +355,7 @@ export class BookingPage {
       this.changePhone();
       this.toast.info('Confirme seu telefone para continuar.');
     } else if (err.status === 409) {
-      this.toast.error('Esse horário acabou de ser ocupado. Escolha outro.');
+      this.toast.error(apiErrorMessage(err, 'Esse horário acabou de ser ocupado. Escolha outro.'));
       this.selectedSlot.set(null);
       this.backToSchedule();
     } else if (err.status > 0 && err.status < 500) {

@@ -121,8 +121,12 @@ public class AppointmentService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado"));
 
 		String phone = request.clientPhone().trim();
+		String name = request.clientName() == null || request.clientName().isBlank() ? null : request.clientName().trim();
 		Client client = clientRepository.findByPhone(phone)
-				.orElseGet(() -> clientRepository.save(Client.builder().phone(phone).name(request.clientName()).build()));
+				.orElseGet(() -> clientRepository.save(Client.builder().phone(phone).name(name).build()));
+		if (client.getName() == null && name != null) {
+			client.setName(name);
+		}
 
 		checkConflict(professionalId, request.scheduledDate(), request.scheduledTime(), service.getDurationMinutes());
 

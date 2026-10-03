@@ -1,37 +1,60 @@
-<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-  <div class="w-full max-w-sm bg-white rounded-lg shadow p-6">
-    <h1 class="text-xl font-bold text-gray-900 text-center">Entrar como profissional</h1>
+<app-public-shell [showAuthActions]="false">
+  <div class="mx-auto max-w-sm pt-4 sm:pt-10">
+    <div class="mb-6 text-center">
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-primary-500">
+        <app-icon name="calendar-week" [size]="26" />
+      </span>
+      <h1 class="mt-4 font-display text-2xl font-bold text-slate-900">Acesse sua agenda</h1>
+      <p class="mt-1 text-sm text-slate-500">Entre com o e-mail e a senha do seu cadastro.</p>
+    </div>
 
-    @if (errorMessage()) {
-      <div class="mt-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2 text-sm">
-        {{ errorMessage() }}
-      </div>
-    }
+    <app-card>
+      <form class="space-y-4" (ngSubmit)="submit()">
+        <app-text-field label="E-mail">
+          <input
+            class="field-input"
+            type="email"
+            name="email"
+            autocomplete="email"
+            inputmode="email"
+            placeholder="voce@exemplo.com"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event); errorMessage.set(null)" />
+        </app-text-field>
 
-    <label class="block mt-6 text-sm font-medium text-gray-700">E-mail</label>
-    <input
-      type="email"
-      [ngModel]="email()"
-      (ngModelChange)="email.set($event)"
-      class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
-    />
+        <app-text-field label="Senha">
+          <span class="relative block">
+            <input
+              class="field-input pr-11"
+              name="password"
+              autocomplete="current-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event); errorMessage.set(null)" />
+            <button
+              type="button"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
+              (click)="showPassword.update((v) => !v)">
+              <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="18" />
+            </button>
+          </span>
+        </app-text-field>
 
-    <label class="block mt-4 text-sm font-medium text-gray-700">Senha</label>
-    <input
-      type="password"
-      [ngModel]="password()"
-      (ngModelChange)="password.set($event)"
-      (keyup.enter)="submit()"
-      class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
-    />
+        @if (errorMessage()) {
+          <p class="flex items-center gap-2 rounded-xl bg-accent-50 px-3 py-2.5 text-sm text-accent-700" role="alert">
+            <app-icon name="info" [size]="16" />
+            {{ errorMessage() }}
+          </p>
+        }
 
-    <button
-      type="button"
-      [disabled]="submitting()"
-      (click)="submit()"
-      class="mt-6 w-full rounded-md bg-indigo-600 text-white py-2 font-medium disabled:opacity-50"
-    >
-      {{ submitting() ? 'Entrando...' : 'Entrar' }}
-    </button>
+        <app-button type="submit" [full]="true" size="lg" [loading]="submitting()" [disabled]="!canSubmit()">Entrar</app-button>
+      </form>
+    </app-card>
+
+    <p class="mt-6 text-center text-sm text-slate-500">
+      Ainda não tem conta?
+      <a routerLink="/profissional/cadastro" class="font-medium text-primary-600 hover:text-primary-700">Criar conta</a>
+    </p>
   </div>
-</div>
+</app-public-shell>

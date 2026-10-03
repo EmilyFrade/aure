@@ -1,90 +1,295 @@
-<div class="min-h-screen bg-gray-50 px-4 py-8">
-  <div class="max-w-3xl mx-auto">
-    <header class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-bold text-gray-900">Minha agenda</h1>
-      <div class="flex items-center gap-4">
-        <a routerLink="/profissional/configuracoes" class="text-sm text-gray-500 hover:text-gray-700">Configurações</a>
-        <button type="button" (click)="logout()" class="text-sm text-gray-500 hover:text-gray-700">Sair</button>
-      </div>
-    </header>
+<app-shell title="Agenda" subtitle="Seus atendimentos do dia e da semana.">
+  <div shellActions class="hidden md:block">
+    <app-button (click)="openNew()">
+      <app-icon name="plus" [size]="18" />
+      Novo agendamento
+    </app-button>
+  </div>
 
-    <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap items-center gap-4">
-      <div class="flex gap-2">
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <div class="flex rounded-xl bg-white p-1 shadow-card ring-1 ring-primary-100/70">
+      @for (mode of ['day', 'week']; track mode) {
         <button
           type="button"
-          (click)="setRangeMode('day')"
-          [class.bg-indigo-600]="rangeMode() === 'day'"
-          [class.text-white]="rangeMode() === 'day'"
-          class="rounded-md px-3 py-1.5 text-sm border border-gray-300"
-        >
-          Dia
+          class="rounded-lg px-3.5 py-1.5 text-sm font-medium transition"
+          [class]="view() === mode ? 'bg-primary-500 text-white shadow-sm' : 'text-slate-600 hover:bg-primary-50'"
+          (click)="setView($any(mode))">
+          {{ mode === 'day' ? 'Dia' : 'Semana' }}
         </button>
-        <button
-          type="button"
-          (click)="setRangeMode('week')"
-          [class.bg-indigo-600]="rangeMode() === 'week'"
-          [class.text-white]="rangeMode() === 'week'"
-          class="rounded-md px-3 py-1.5 text-sm border border-gray-300"
-        >
-          Semana
-        </button>
-      </div>
-
-      <input
-        type="date"
-        [ngModel]="referenceDate()"
-        (ngModelChange)="referenceDate.set($event); load()"
-        class="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-      />
+      }
     </div>
 
-    @if (errorMessage()) {
-      <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2 text-sm">
-        {{ errorMessage() }}
+    <div class="order-last flex w-full items-center rounded-xl bg-white shadow-card ring-1 ring-primary-100/70 sm:order-none sm:w-auto">
+      <button
+        type="button"
+        class="rounded-l-xl p-2.5 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600"
+        aria-label="Anterior"
+        (click)="shift(-1)">
+        <app-icon name="chevron-left" [size]="18" />
+      </button>
+      <span class="min-w-0 flex-1 truncate px-1 text-center text-sm font-semibold text-slate-800 sm:min-w-56">{{ rangeLabel() }}</span>
+      <button
+        type="button"
+        class="rounded-r-xl p-2.5 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600"
+        aria-label="Próximo"
+        (click)="shift(1)">
+        <app-icon name="chevron-right" [size]="18" />
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="ml-auto rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-primary-600 shadow-card sm:ml-0 ring-1 ring-primary-100/70 transition hover:bg-primary-50 disabled:opacity-50"
+      [disabled]="isToday()"
+      (click)="goToday()">
+      Hoje
+    </button>
+  </div>
+
+  @if (failed()) {
+    <app-card>
+      <app-empty-state icon="info" title="Não foi possível carregar a agenda" description="Confira sua conexão e tente de novo.">
+        <app-button variant="secondary" (click)="reload()">Tentar de novo</app-button>
+      </app-empty-state>
+    </app-card>
+  } @else {
+    @switch (view()) {
+      @case ('day') {
+        <div class="mb-4 grid grid-cols-7 gap-1.5 sm:gap-2">
+          @for (day of week(); track day.iso) {
+            <button
+              type="button"
+              class="flex min-w-0 flex-col items-center rounded-2xl py-2.5 transition"
+              [class]="day.iso === date()
+                ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25'
+                : 'bg-white text-slate-700 shadow-card ring-1 ring-primary-100/70 hover:ring-primary-300'"
+              (click)="openDay(day.iso)">
+              <span class="text-[11px] font-semibold uppercase tracking-wide" [class.opacity-80]="day.iso === date()" [class.text-slate-400]="day.iso !== date()">
+                {{ day.weekday }}
+              </span>
+              <span class="font-display text-lg font-bold">{{ day.day }}</span>
+              <span class="mt-0.5 flex h-4 items-center">
+                @if (day.appointments.length > 0) {
+                  <span
+                    class="rounded-full px-1.5 text-[10px] font-semibold"
+                    [class]="day.iso === date() ? 'bg-white/25 text-white' : 'bg-primary-100 text-primary-700'">
+                    {{ day.appointments.length }}
+                  </span>
+                } @else if (day.isToday) {
+                  <span class="h-1.5 w-1.5 rounded-full" [class]="day.iso === date() ? 'bg-white' : 'bg-primary-400'"></span>
+                }
+              </span>
+            </button>
+          }
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+          <section class="min-w-0">
+            @if (loading()) {
+              <div class="flex justify-center py-16 text-primary-500"><app-spinner /></div>
+            } @else if (timeline().length === 0) {
+              <app-card>
+                <app-empty-state
+                  icon="calendar"
+                  title="Você não atende neste dia"
+                  description="Ajuste seus horários em Configurações ou crie um agendamento avulso.">
+                  <app-button variant="secondary" (click)="openNew()">
+                    <app-icon name="plus" [size]="16" />
+                    Novo agendamento
+                  </app-button>
+                </app-empty-state>
+              </app-card>
+            } @else {
+              <ol class="space-y-2">
+                @for (row of timeline(); track row.key) {
+                  <li>
+                    @switch (row.kind) {
+                      @case ('appointments') {
+                        <div class="space-y-2">
+                          @for (appointment of row.items; track appointment.id) {
+                            <app-appointment-card
+                              [appointment]="appointment"
+                              [busy]="busyId() === appointment.id"
+                              (statusChange)="updateStatus(appointment, $event)"
+                              (cancel)="cancelTarget.set(appointment)" />
+                          }
+                        </div>
+                      }
+                      @case ('free') {
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-3 rounded-2xl border border-dashed border-primary-200 py-2.5 pl-5 pr-4 text-left text-sm transition hover:border-primary-400 hover:bg-primary-50/60"
+                          (click)="openNew(date(), row.hour)">
+                          <span class="w-11 shrink-0 font-semibold tabular-nums text-slate-500">{{ row.hour }}</span>
+                          <span class="flex-1 text-primary-500">Horário livre</span>
+                          <app-icon name="plus" [size]="16" class="text-primary-400" />
+                        </button>
+                      }
+                      @case ('blocked') {
+                        <div class="flex items-center gap-3 rounded-2xl bg-slate-100/80 py-2.5 pl-5 pr-4 text-sm text-slate-500">
+                          <span class="shrink-0 font-semibold tabular-nums">{{ fromMinutes(row.from) }} – {{ fromMinutes(row.to) }}</span>
+                          <span class="min-w-0 flex-1 truncate">{{ row.reason || 'Bloqueado' }}</span>
+                          <app-icon name="lock" [size]="16" />
+                        </div>
+                      }
+                      @case ('off') {
+                        <p class="flex items-center gap-3 px-5 py-1 text-sm text-slate-400">
+                          <span class="shrink-0 tabular-nums">{{ fromMinutes(row.from) }} – {{ fromMinutes(row.to) }}</span>
+                          <span>Intervalo</span>
+                        </p>
+                      }
+                    }
+                  </li>
+                } @empty {
+                  <li>
+                    <app-card>
+                      <p class="text-center text-sm text-slate-500">Nenhum horário restante neste dia.</p>
+                    </app-card>
+                  </li>
+                }
+              </ol>
+            }
+          </section>
+
+          <aside class="order-first space-y-3 lg:sticky lg:top-6 lg:order-none">
+            <app-card>
+              <p class="hidden text-xs font-semibold uppercase tracking-wide text-slate-400 lg:block">Resumo do dia</p>
+              <dl class="grid grid-cols-[1fr_1fr_auto] divide-x divide-primary-100 lg:mt-3 lg:grid-cols-1 lg:divide-x-0 lg:space-y-2.5">
+                <div class="pr-3 lg:flex lg:items-center lg:justify-between lg:pr-0">
+                  <dt class="text-xs text-slate-500 lg:text-sm">Agendamentos</dt>
+                  <dd class="font-display text-base font-bold text-slate-800">{{ activeToday().length }}</dd>
+                </div>
+                <div class="px-3 lg:flex lg:items-center lg:justify-between lg:px-0">
+                  <dt class="text-xs text-slate-500 lg:text-sm">Pendentes</dt>
+                  <dd class="font-display text-base font-bold" [class]="pendingCount() > 0 ? 'text-accent-600' : 'text-slate-800'">{{ pendingCount() }}</dd>
+                </div>
+                <div class="pl-3 lg:flex lg:items-center lg:justify-between lg:pl-0">
+                  <dt class="text-xs text-slate-500 lg:text-sm">Previsto</dt>
+                  <dd class="whitespace-nowrap font-display text-base font-bold text-primary-600">{{ expectedRevenue() }}</dd>
+                </div>
+              </dl>
+              @if (next(); as upcoming) {
+                <div class="mt-4 hidden items-center gap-3 rounded-xl bg-primary-50/70 p-3 lg:flex">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-primary-500">
+                    <app-icon name="clock" [size]="18" />
+                  </span>
+                  <div class="min-w-0">
+                    <p class="text-xs text-slate-500">Próximo</p>
+                    <p class="truncate text-sm font-semibold text-slate-800">{{ upcoming.scheduled_time }} · {{ clientLabel(upcoming) }}</p>
+                  </div>
+                </div>
+              }
+            </app-card>
+
+            @if (cancelledToday().length > 0) {
+              <app-card>
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Cancelados</p>
+                <ul class="mt-2 divide-y divide-primary-50">
+                  @for (appointment of cancelledToday(); track appointment.id) {
+                    <li class="flex items-center justify-between gap-3 py-2 text-sm">
+                      <span class="min-w-0 truncate text-slate-500 line-through">{{ clientLabel(appointment) }}</span>
+                      <span class="shrink-0 tabular-nums text-slate-400">{{ appointment.scheduled_time }}</span>
+                    </li>
+                  }
+                </ul>
+              </app-card>
+            }
+          </aside>
+        </div>
+      }
+
+      @case ('week') {
+        @if (loading()) {
+          <div class="flex justify-center py-16 text-primary-500"><app-spinner /></div>
+        } @else {
+          <div class="space-y-4 md:grid md:grid-cols-7 md:gap-2 md:[&>*]:min-w-0 md:space-y-0">
+            @for (day of week(); track day.iso) {
+              <section class="md:min-h-64 md:rounded-2xl md:bg-white md:p-2 md:shadow-card md:ring-1 md:ring-primary-100/70">
+                <button
+                  type="button"
+                  class="mb-2 flex w-full items-center gap-2 rounded-xl px-1 py-1 text-left transition hover:bg-primary-50 md:flex-col md:gap-0 md:py-2 md:text-center"
+                  (click)="openDay(day.iso)">
+                  <span class="text-xs font-semibold uppercase tracking-wide" [class]="day.isToday ? 'text-primary-600' : 'text-slate-400'">
+                    {{ day.weekday }}
+                  </span>
+                  <span
+                    class="font-display text-lg font-bold md:flex md:h-9 md:w-9 md:items-center md:justify-center md:rounded-full"
+                    [class]="day.isToday ? 'text-primary-600 md:bg-primary-100' : 'text-slate-800'">
+                    {{ day.day }}
+                  </span>
+                  <span class="ml-auto text-xs text-slate-400 md:hidden">
+                    {{ day.appointments.length === 0 ? '' : day.appointments.length + (day.appointments.length === 1 ? ' agendamento' : ' agendamentos') }}
+                  </span>
+                </button>
+
+                @if (day.appointments.length > 0) {
+                  <div class="space-y-2">
+                    @for (appointment of day.appointments; track appointment.id) {
+                      <button
+                        type="button"
+                        class="w-full rounded-xl border-l-4 bg-white p-2.5 text-left shadow-card ring-1 ring-primary-100/70 transition hover:ring-primary-300 md:bg-primary-50/40 md:shadow-none"
+                        [class]="statusBorder[appointment.status]"
+                        [class.opacity-60]="appointment.status === 'NO_SHOW'"
+                        (click)="openDay(day.iso)">
+                        <span class="flex items-center justify-between gap-1 text-xs text-slate-500">
+                          <span class="font-semibold tabular-nums text-slate-700">{{ appointment.scheduled_time }}</span>
+                          <span class="truncate md:hidden">{{ statusLabel[appointment.status] }}</span>
+                          <span
+                            class="hidden h-2 w-2 shrink-0 rounded-full md:block"
+                            [class]="statusDot[appointment.status]"
+                            [attr.title]="statusLabel[appointment.status]"></span>
+                        </span>
+                        <span class="mt-0.5 block truncate text-sm font-semibold text-slate-900">{{ clientLabel(appointment) }}</span>
+                        <span class="block truncate text-xs text-slate-500">{{ appointment.service_name }}</span>
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <p class="hidden px-1 py-6 text-center text-xs text-slate-400 md:block">
+                    {{ day.works ? 'Livre' : 'Sem horários' }}
+                  </p>
+                  <p class="px-1 text-sm text-slate-400 md:hidden">
+                    {{ day.works ? 'Nenhum agendamento' : 'Sem horários neste dia' }}
+                  </p>
+                }
+              </section>
+            }
+          </div>
+        }
+      }
+    }
+  }
+
+  <button
+    type="button"
+    class="fixed bottom-20 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30 transition hover:bg-primary-600 md:hidden"
+    aria-label="Novo agendamento"
+    (click)="openNew()">
+    <app-icon name="plus" [size]="24" />
+  </button>
+
+  <app-sheet title="Novo agendamento" [(open)]="newOpen">
+    @if (newOpen()) {
+      <app-new-appointment-form
+        [professionalId]="professionalId"
+        [services]="services()"
+        [initialDate]="newDate()"
+        [initialTime]="newTime()"
+        (created)="onCreated($event)" />
+    }
+  </app-sheet>
+
+  <app-sheet title="Cancelar agendamento?" [open]="!!cancelTarget()" (openChange)="setCancelOpen($event)">
+    @if (cancelTarget(); as target) {
+      <p class="text-sm text-slate-600">
+        {{ clientLabel(target) }} · {{ target.service_name }}<br />
+        {{ describeLong(target.scheduled_date) }}, {{ target.scheduled_time }} – {{ endTime(target) }}
+      </p>
+      <p class="mt-3 text-sm text-slate-500">O horário volta a ficar livre para novos agendamentos.</p>
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <app-button variant="outline" (click)="cancelTarget.set(null)">Voltar</app-button>
+        <app-button variant="danger" [loading]="cancelling()" (click)="confirmCancel()">Cancelar</app-button>
       </div>
     }
-
-    @if (loading()) {
-      <p class="text-gray-500 text-center">Carregando...</p>
-    } @else if (appointments().length === 0) {
-      <p class="text-gray-500 text-center">Nenhum agendamento neste período.</p>
-    } @else {
-      <ul class="space-y-3">
-        @for (appointment of appointments(); track appointment.id) {
-          <li class="bg-white rounded-lg shadow p-4 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p class="font-medium text-gray-800">{{ appointment.client_name }} — {{ appointment.service_name }}</p>
-              <p class="text-sm text-gray-500">{{ appointment.scheduled_date }} às {{ appointment.scheduled_time }}</p>
-              <span
-                class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full"
-                [class.bg-yellow-100]="appointment.status === 'PENDING'"
-                [class.text-yellow-800]="appointment.status === 'PENDING'"
-                [class.bg-green-100]="appointment.status === 'CONFIRMED'"
-                [class.text-green-800]="appointment.status === 'CONFIRMED'"
-                [class.bg-blue-100]="appointment.status === 'COMPLETED'"
-                [class.text-blue-800]="appointment.status === 'COMPLETED'"
-                [class.bg-gray-100]="appointment.status === 'CANCELLED' || appointment.status === 'NO_SHOW'"
-                [class.text-gray-600]="appointment.status === 'CANCELLED' || appointment.status === 'NO_SHOW'"
-              >
-                {{ appointment.status }}
-              </span>
-            </div>
-
-            <div class="flex gap-2">
-              @if (appointment.status === 'PENDING') {
-                <button (click)="updateStatus(appointment, 'CONFIRMED')" class="text-sm text-indigo-600 hover:underline">Confirmar</button>
-              }
-              @if (appointment.status === 'CONFIRMED') {
-                <button (click)="updateStatus(appointment, 'COMPLETED')" class="text-sm text-indigo-600 hover:underline">Concluir</button>
-                <button (click)="updateStatus(appointment, 'NO_SHOW')" class="text-sm text-gray-500 hover:underline">Não veio</button>
-              }
-              @if (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') {
-                <button (click)="cancel(appointment)" class="text-sm text-red-600 hover:underline">Cancelar</button>
-              }
-            </div>
-          </li>
-        }
-      </ul>
-    }
-  </div>
-</div>
+  </app-sheet>
+</app-shell>

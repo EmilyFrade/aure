@@ -44,4 +44,10 @@ public class ClientAuthController {
 	public ClientProfileDto updateName(@Valid @RequestBody ClientNameUpdateDto request) {
 		return clientAuthService.updateName(request);
 	}
+
+	@PostMapping("/logout")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void logout() {
+		clientAuthService.logout();
+	}
 }

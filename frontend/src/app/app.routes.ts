@@ -15,6 +15,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/booking/booking-page').then((m) => m.BookingPage)
   },
   {
+    path: 'meus-agendamentos',
+    loadComponent: () =>
+      import('./features/client-appointments/client-appointments').then((m) => m.ClientAppointments)
+  },
+  {
     path: 'profissional/cadastro',
     loadComponent: () =>
       import('./features/professional/onboarding/professional-onboarding').then((m) => m.ProfessionalOnboarding)

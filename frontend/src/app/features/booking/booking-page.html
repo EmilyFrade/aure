@@ -463,13 +463,21 @@
           </dl>
 
 
-          <div class="mt-6 flex flex-col gap-2 sm:flex-row">
-            <app-button variant="outline" [full]="true" (click)="bookAnother()">Agendar outro serviço</app-button>
+          <div class="mt-6 flex flex-col gap-2">
             <a
-              routerLink="/buscar"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
-              Buscar outros profissionais
+              routerLink="/meus-agendamentos"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600">
+              <app-icon name="calendar" [size]="16" />
+              Ver meus agendamentos
             </a>
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <app-button variant="outline" [full]="true" (click)="bookAnother()">Agendar outro serviço</app-button>
+              <a
+                routerLink="/buscar"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
+                Buscar outros profissionais
+              </a>
+            </div>
           </div>
         </app-card>
       }

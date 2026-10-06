@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { finalize, Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { ClientAuthResponse, ClientOtpRequest, ClientOtpVerify, ClientProfile } from '../models/api.models';
 import { SessionStore } from './session-store';
@@ -28,5 +28,11 @@ export class ClientAuthService {
 
   updateName(name: string): Observable<ClientProfile> {
     return this.http.patch<ClientProfile>(`${API_BASE_URL}/auth/client/me`, { name });
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>(`${API_BASE_URL}/auth/client/logout`, {}).pipe(
+      finalize(() => this.session.clearClientSession())
+    );
   }
 }

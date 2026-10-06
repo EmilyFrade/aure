@@ -6,7 +6,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionStore);
 
   const isClientRoute =
-    (req.url.includes('/appointments') && !req.url.includes('/professionals/')) || req.url.endsWith('/auth/client/me');
+    (req.url.includes('/appointments') && !req.url.includes('/professionals/')) || req.url.endsWith('/auth/client/me') || req.url.endsWith('/auth/client/logout');
   const isProfessionalRoute =
     req.url.includes('/professionals/') || req.url.includes('/brands/') || req.url.endsWith('/auth/logout');
 

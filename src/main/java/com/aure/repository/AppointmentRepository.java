@@ -13,11 +13,11 @@ import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-	@EntityGraph(attributePaths = {"professional", "client", "service"})
+	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
 	@Query("SELECT a FROM Appointment a WHERE a.id = :id")
 	Optional<Appointment> findByIdWithDetails(@Param("id") Long id);
 
-	@EntityGraph(attributePaths = {"professional", "client", "service"})
+	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
 	List<Appointment> findByClientId(Long clientId);
 
 	List<Appointment> findByProfessionalIdAndScheduledDateAndStatusNot(Long professionalId, LocalDate scheduledDate, AppointmentStatus status);
@@ -30,7 +30,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
 	Optional<Appointment> findByIdAndProfessionalId(Long id, Long professionalId);
 
-	@EntityGraph(attributePaths = {"professional", "client", "service"})
+	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
 	@Query("SELECT a FROM Appointment a WHERE a.professional.id = :professionalId " +
 			"AND a.scheduledDate >= COALESCE(:startDate, a.scheduledDate) " +
 			"AND a.scheduledDate <= COALESCE(:endDate, a.scheduledDate) " +

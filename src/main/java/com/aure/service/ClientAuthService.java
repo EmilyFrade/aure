@@ -90,6 +90,16 @@ public class ClientAuthService {
 		return ClientProfileDto.from(clientRepository.save(client));
 	}
 
+	@Transactional
+	public void logout() {
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedClient principal) {
+			clientSessionRepository.findBySessionToken(principal.sessionToken())
+					.ifPresent(session -> session.setSessionExpiresAt(Instant.now()));
+		}
+		SecurityContextHolder.clearContext();
+	}
+
 	private Client currentClient() {
 		var authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedClient principal)) {

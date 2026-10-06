@@ -187,6 +187,9 @@ export interface AppointmentResponse {
   id: number;
   professional_id: number;
   professional_name: string;
+  professional_photo_url: string | null;
+  brand_name: string;
+  brand_slug: string;
   client_id: number;
   client_name: string | null;
   client_phone: string;

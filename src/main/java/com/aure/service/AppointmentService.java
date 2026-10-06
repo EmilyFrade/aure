@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
@@ -93,6 +94,9 @@ public class AppointmentService {
 		Client client = currentClient();
 		Appointment appointment = appointmentRepository.findByIdAndClientId(appointmentId, client.getId())
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
+		if (!LocalDateTime.of(appointment.getScheduledDate(), appointment.getScheduledTime()).isAfter(LocalDateTime.now())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Esse horário já passou e não pode mais ser cancelado");
+		}
 		return AppointmentResponseDto.from(cancel(appointment));
 	}
 

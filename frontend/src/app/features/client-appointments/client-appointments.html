@@ -1,0 +1,202 @@
+<app-public-shell>
+  @switch (phase()) {
+    @case ('checking') {
+      <div class="flex justify-center py-16 text-primary-500"><app-spinner /></div>
+    }
+
+    @case ('list') {
+      <div class="mx-auto max-w-2xl">
+        <div class="mb-5 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <h1 class="font-display text-xl font-bold text-slate-900 sm:text-2xl">Meus agendamentos</h1>
+            <p class="mt-0.5 truncate text-sm text-slate-500">
+              {{ firstName() ? 'Olá, ' + firstName() + '!' : 'Seus horários marcados pela Aure.' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+            (click)="logout()">
+            <app-icon name="logout" [size]="16" />
+            Sair
+          </button>
+        </div>
+
+        <div class="mb-4 grid grid-cols-2 rounded-xl bg-white p-1 shadow-card ring-1 ring-primary-100/70">
+          <button
+            type="button"
+            class="rounded-lg py-2 text-sm font-medium transition"
+            [class]="tab() === 'upcoming' ? 'bg-primary-500 text-white shadow-sm' : 'text-slate-600 hover:bg-primary-50'"
+            (click)="tab.set('upcoming')">
+            Próximos @if (upcoming().length > 0) { ({{ upcoming().length }}) }
+          </button>
+          <button
+            type="button"
+            class="rounded-lg py-2 text-sm font-medium transition"
+            [class]="tab() === 'history' ? 'bg-primary-500 text-white shadow-sm' : 'text-slate-600 hover:bg-primary-50'"
+            (click)="tab.set('history')">
+            Histórico
+          </button>
+        </div>
+
+        @if (loading()) {
+          <div class="flex justify-center py-16 text-primary-500"><app-spinner /></div>
+        } @else if (failed()) {
+          <app-card>
+            <app-empty-state icon="info" title="Não foi possível carregar" description="Confira sua conexão e tente de novo.">
+              <app-button variant="secondary" (click)="load()">Tentar de novo</app-button>
+            </app-empty-state>
+          </app-card>
+        } @else {
+          <ul class="space-y-3">
+            @for (appointment of visible(); track appointment.id) {
+              <li>
+                <app-card [padded]="false">
+                  <div class="flex items-center gap-3 px-4 pt-4">
+                    <app-avatar [name]="appointment.professional_name" [photoUrl]="appointment.professional_photo_url" [size]="44" />
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate font-display font-semibold text-slate-900">{{ appointment.brand_name }}</p>
+                      <p class="truncate text-sm text-slate-500">com {{ appointment.professional_name }}</p>
+                    </div>
+                    <app-badge [variant]="status[appointment.status].badge">{{ status[appointment.status].label }}</app-badge>
+                  </div>
+
+                  <dl class="mx-4 mt-3 space-y-1.5 rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm">
+                    <div class="flex items-center gap-2 text-slate-700">
+                      <app-icon name="calendar" [size]="15" class="text-primary-400" />
+                      <dt class="sr-only">Data</dt>
+                      <dd class="font-medium">{{ describeDate(appointment) }}</dd>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700">
+                      <app-icon name="clock" [size]="15" class="text-primary-400" />
+                      <dt class="sr-only">Horário</dt>
+                      <dd>{{ timeRange(appointment) }}</dd>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700">
+                      <app-icon name="sparkles" [size]="15" class="text-primary-400" />
+                      <dt class="sr-only">Serviço</dt>
+                      <dd class="min-w-0 flex-1 truncate">{{ appointment.service_name }}</dd>
+                      <dd class="shrink-0 font-semibold text-primary-600">{{ formatPrice(appointment.price) }}</dd>
+                    </div>
+                  </dl>
+
+                  <div class="flex items-center gap-2 px-4 py-3">
+                    <a
+                      [routerLink]="['/agendar', appointment.brand_slug]"
+                      [queryParams]="{ profissional: appointment.professional_id }"
+                      class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
+                      Agendar de novo
+                      <app-icon name="arrow-right" [size]="16" />
+                    </a>
+                    @if (tab() === 'upcoming') {
+                      <button
+                        type="button"
+                        class="ml-auto rounded-xl px-3 py-2 text-sm font-medium text-accent-600 transition hover:bg-accent-50"
+                        (click)="cancelTarget.set(appointment)">
+                        Cancelar
+                      </button>
+                    }
+                  </div>
+                </app-card>
+              </li>
+            } @empty {
+              <li>
+                <app-card>
+                  <app-empty-state
+                    icon="calendar"
+                    [title]="tab() === 'upcoming' ? 'Nenhum horário marcado' : 'Nada por aqui ainda'"
+                    [description]="tab() === 'upcoming' ? 'Encontre um profissional e agende em poucos toques.' : 'Seus atendimentos anteriores e cancelados aparecem aqui.'">
+                    @if (tab() === 'upcoming') {
+                      <a
+                        routerLink="/buscar"
+                        class="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600">
+                        <app-icon name="search" [size]="16" />
+                        Buscar profissionais
+                      </a>
+                    }
+                  </app-empty-state>
+                </app-card>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @default {
+      <div class="mx-auto max-w-sm pt-4 sm:pt-10">
+        <div class="mb-6 text-center">
+          <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-primary-500">
+            <app-icon name="calendar" [size]="26" />
+          </span>
+          <h1 class="mt-4 font-display text-2xl font-bold text-slate-900">Meus agendamentos</h1>
+          <p class="mt-1 text-sm text-slate-500">
+            @if (phase() === 'code') {
+              Enviamos um código para <span class="font-medium text-slate-700">{{ phone() }}</span>.
+            } @else {
+              Informe o WhatsApp usado no agendamento para ver e cancelar seus horários.
+            }
+          </p>
+        </div>
+
+        <app-card>
+          @if (phase() === 'code') {
+            <app-otp-input [value]="otp()" (valueChange)="onOtpChange($event)" />
+            @if (otpError()) {
+              <p class="mt-2 text-center text-sm text-accent-600">{{ otpError() }}</p>
+            }
+            <div class="mt-3 flex items-center justify-center gap-3 text-sm">
+              @if (resendIn() > 0) {
+                <span class="text-slate-400">Reenviar em {{ resendIn() }}s</span>
+              } @else {
+                <button type="button" class="font-medium text-primary-600 hover:text-primary-700" (click)="requestCode()">
+                  Reenviar código
+                </button>
+              }
+              <span class="text-slate-300">·</span>
+              <button type="button" class="font-medium text-slate-500 hover:text-slate-700" (click)="changePhone()">
+                Alterar número
+              </button>
+            </div>
+            <div class="mt-5">
+              <app-button [full]="true" [loading]="verifying()" [disabled]="otp().length < 6" (click)="verifyCode()">
+                Ver meus agendamentos
+              </app-button>
+            </div>
+          } @else {
+            <form class="space-y-4" (ngSubmit)="requestCode()">
+              <app-text-field label="Telefone (WhatsApp)">
+                <input
+                  class="field-input"
+                  name="phone"
+                  inputmode="tel"
+                  maxlength="15"
+                  autocomplete="tel"
+                  placeholder="(31) 99999-9999"
+                  [ngModel]="phone()"
+                  (ngModelChange)="phone.set(maskPhone($event))" />
+              </app-text-field>
+              <app-button type="submit" [full]="true" [loading]="sendingCode()" [disabled]="!canRequestCode()">
+                Enviar código
+              </app-button>
+            </form>
+          }
+        </app-card>
+      </div>
+    }
+  }
+
+  <app-sheet title="Cancelar agendamento?" [open]="!!cancelTarget()" (openChange)="setCancelOpen($event)">
+    @if (cancelTarget(); as target) {
+      <p class="text-sm text-slate-600">
+        {{ target.service_name }} com {{ target.professional_name }}<br />
+        {{ describeDate(target) }}, {{ timeRange(target) }}
+      </p>
+      <p class="mt-3 text-sm text-slate-500">O horário fica livre para outras pessoas. Se mudar de ideia, será preciso agendar de novo.</p>
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <app-button variant="outline" (click)="cancelTarget.set(null)">Voltar</app-button>
+        <app-button variant="danger" [loading]="cancelling()" (click)="confirmCancel()">Cancelar horário</app-button>
+      </div>
+    }
+  </app-sheet>
+</app-public-shell>

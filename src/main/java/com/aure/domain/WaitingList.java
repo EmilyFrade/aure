@@ -21,6 +21,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "waiting_list")
@@ -53,6 +54,10 @@ public class WaitingList {
 	@Column(name = "preferred_date_end", nullable = false)
 	private LocalDate preferredDateEnd;
 
+	@Enumerated(EnumType.STRING)
+	@Column(name = "preferred_period", length = 20)
+	private DayPeriod preferredPeriod;
+
 	@Column(nullable = false)
 	private int position;
 
@@ -62,6 +67,12 @@ public class WaitingList {
 
 	@Column(name = "notified_at")
 	private Instant notifiedAt;
+
+	@Column(name = "offered_date")
+	private LocalDate offeredDate;
+
+	@Column(name = "offered_time")
+	private LocalTime offeredTime;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;

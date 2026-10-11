@@ -96,6 +96,9 @@ export class NewAppointmentForm {
   readonly services = input.required<ServiceResponse[]>();
   readonly initialDate = input(isoToday());
   readonly initialTime = input<string | null>(null);
+  readonly initialServiceId = input<number | null>(null);
+  readonly initialPhone = input('');
+  readonly initialName = input('');
   readonly created = output<AppointmentResponse>();
 
   protected readonly today = isoToday();
@@ -120,7 +123,10 @@ export class NewAppointmentForm {
   constructor() {
     effect(() => {
       this.date.set(this.initialDate() < this.today ? this.today : this.initialDate());
-      this.serviceId.set(this.services()[0]?.id ?? null);
+      const preferred = this.services().find((s) => s.id === this.initialServiceId());
+      this.serviceId.set(preferred?.id ?? this.services()[0]?.id ?? null);
+      this.phone.set(maskPhoneBR(this.initialPhone()));
+      this.name.set(this.initialName());
     });
 
     effect((onCleanup) => {

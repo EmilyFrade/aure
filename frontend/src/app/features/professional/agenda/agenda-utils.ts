@@ -90,7 +90,7 @@ export function endTime(appointment: AppointmentResponse): string {
   return fromMinutes(toMinutes(appointment.scheduled_time) + appointment.duration_minutes);
 }
 
-export function clientLabel(appointment: AppointmentResponse): string {
+export function clientLabel(appointment: Pick<AppointmentResponse, 'client_name' | 'client_phone'>): string {
   return appointment.client_name?.trim() || maskPhoneBR(appointment.client_phone);
 }
 

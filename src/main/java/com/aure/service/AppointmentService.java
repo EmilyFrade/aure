@@ -41,6 +41,7 @@ public class AppointmentService {
 	private final ClientRepository clientRepository;
 	private final ProfessionalService professionalService;
 	private final AppointmentEventPublisher eventPublisher;
+	private final WaitingListService waitingListService;
 
 	@Transactional
 	public AppointmentResponseDto createAppointment(AppointmentRequestDto request) {
@@ -70,6 +71,7 @@ public class AppointmentService {
 				.build();
 
 		appointment = appointmentRepository.save(appointment);
+		waitingListService.closeForBooking(client.getId(), professional.getId(), service.getId(), request.scheduledDate());
 
 		eventPublisher.publish(new AppointmentCreatedEvent(
 				appointment.getId(),
@@ -148,6 +150,7 @@ public class AppointmentService {
 				.build();
 
 		appointment = appointmentRepository.save(appointment);
+		waitingListService.closeForBooking(client.getId(), professionalId, service.getId(), request.scheduledDate());
 
 		eventPublisher.publish(new AppointmentCreatedEvent(
 				appointment.getId(),

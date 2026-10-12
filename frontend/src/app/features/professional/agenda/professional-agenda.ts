@@ -1,17 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
   AppointmentResponse,
   AppointmentStatus,
   BlockResponse,
   ScheduleResponse,
-  ServiceResponse
+  ServiceResponse,
+  WaitingListEntry
 } from '../../../core/models/api.models';
 import { ProfessionalAppointmentService } from '../../../core/services/professional-appointment.service';
 import { ProfessionalAuthService } from '../../../core/services/professional-auth.service';
 import { ScheduleService } from '../../../core/services/schedule.service';
 import { ServiceCatalogService } from '../../../core/services/service-catalog.service';
+import { WaitingListService } from '../../../core/services/waiting-list.service';
 import { ToastService } from '../../../shared/feedback/toast.service';
 import { AppShell } from '../../../shared/layout/app-shell';
 import { Button } from '../../../shared/ui/button';
@@ -64,13 +68,14 @@ const REVENUE_STATUSES: readonly AppointmentStatus[] = ['PENDING', 'CONFIRMED', 
 
 @Component({
   selector: 'app-professional-agenda',
-  imports: [AppShell, AppointmentCard, Button, Card, EmptyState, Icon, NewAppointmentForm, Sheet, Spinner],
+  imports: [NgTemplateOutlet, RouterLink, AppShell, AppointmentCard, Button, Card, EmptyState, Icon, NewAppointmentForm, Sheet, Spinner],
   templateUrl: './professional-agenda.html'
 })
 export class ProfessionalAgenda {
   private readonly appointmentService = inject(ProfessionalAppointmentService);
   private readonly scheduleService = inject(ScheduleService);
   private readonly serviceCatalog = inject(ServiceCatalogService);
+  private readonly waitingListService = inject(WaitingListService);
   private readonly toast = inject(ToastService);
 
   protected readonly professionalId = inject(ProfessionalAuthService).professionalId!;
@@ -84,6 +89,7 @@ export class ProfessionalAgenda {
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
   protected readonly busyId = signal<number | null>(null);
+  protected readonly waitlist = signal<WaitingListEntry[]>([]);
 
   protected readonly newOpen = signal(false);
   protected readonly newDate = signal(isoToday());
@@ -146,6 +152,10 @@ export class ProfessionalAgenda {
 
   protected readonly pendingCount = computed(
     () => this.dayAppointments().filter((a) => a.status === 'PENDING').length
+  );
+
+  protected readonly dayWaitlist = computed(() =>
+    this.waitlist().filter((w) => w.preferred_date_start <= this.date() && w.preferred_date_end >= this.date())
   );
 
   protected readonly next = computed(() => {
@@ -224,6 +234,7 @@ export class ProfessionalAgenda {
     });
 
     effect(() => this.loadWeek(this.weekStart()));
+    this.loadWaitlist();
   }
 
   protected setView(mode: ViewMode): void {
@@ -285,6 +296,7 @@ export class ProfessionalAgenda {
         this.cancelling.set(false);
         this.cancelTarget.set(null);
         this.replace(updated);
+        this.loadWaitlist();
         this.toast.success('Agendamento cancelado.');
       },
       error: (err: HttpErrorResponse) => {
@@ -325,6 +337,13 @@ export class ProfessionalAgenda {
       });
   }
 
+  private loadWaitlist(): void {
+    this.waitingListService.listForProfessional(this.professionalId).subscribe({
+      next: (list) => this.waitlist.set(list),
+      error: () => this.waitlist.set([])
+    });
+  }
+
   private replace(updated: AppointmentResponse): void {
     this.appointments.update((list) => list.map((a) => (a.id === updated.id ? updated : a)));
   }
@@ -346,4 +365,5 @@ export class ProfessionalAgenda {
         const end = b.end_datetime >= dayEnd ? 24 * 60 : toMinutes(b.end_datetime.slice(11));
         return { start, end, reason: b.reason };
       });
-  }}
+  }
+}

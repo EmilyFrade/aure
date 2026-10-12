@@ -40,6 +40,12 @@ export const routes: Routes = [
     canActivate: [professionalGuard]
   },
   {
+    path: 'profissional/fila',
+    loadComponent: () =>
+      import('./features/professional/waiting-list/professional-waiting-list').then((m) => m.ProfessionalWaitingList),
+    canActivate: [professionalGuard]
+  },
+  {
     path: 'profissional/configuracoes',
     loadComponent: () =>
       import('./features/professional/settings/professional-settings').then((m) => m.ProfessionalSettings),

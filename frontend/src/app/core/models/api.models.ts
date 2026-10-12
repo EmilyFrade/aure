@@ -203,6 +203,32 @@ export interface AppointmentResponse {
   notes: string | null;
 }
 
+export type WaitingListStatus = 'WAITING' | 'NOTIFIED' | 'CANCELLED';
+
+export type DayPeriod = 'MORNING' | 'AFTERNOON' | 'EVENING';
+
+export interface WaitingListEntry {
+  id: number;
+  professional_id: number;
+  professional_name: string;
+  professional_photo_url: string | null;
+  brand_name: string;
+  brand_slug: string;
+  client_id: number;
+  client_name: string | null;
+  client_phone: string;
+  service_id: number;
+  service_name: string;
+  preferred_date_start: string;
+  preferred_date_end: string;
+  preferred_period: DayPeriod | null;
+  position: number;
+  status: WaitingListStatus;
+  offered_date: string | null;
+  offered_time: string | null;
+  created_at: string;
+}
+
 export interface ManualAppointmentRequest {
   service_id: number;
   scheduled_date: string;

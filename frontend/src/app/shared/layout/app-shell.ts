@@ -13,6 +13,7 @@ interface ShellLink {
 
 const PROFESSIONAL_NAV: readonly ShellLink[] = [
   { label: 'Agenda', icon: 'calendar-week', path: '/profissional/agenda' },
+  { label: 'Fila de espera', icon: 'users', path: '/profissional/fila' },
   { label: 'Configurações', icon: 'settings', path: '/profissional/configuracoes' }
 ];
 

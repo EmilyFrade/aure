@@ -1,4 +1,11 @@
 <app-shell title="Fila de espera" subtitle="Clientes aguardando uma vaga na sua agenda.">
+  <div shellActions class="hidden md:block">
+    <app-button (click)="addOpen.set(true)">
+      <app-icon name="plus" [size]="18" />
+      Adicionar à fila
+    </app-button>
+  </div>
+
   @if (loading()) {
     <div class="flex justify-center py-16 text-primary-500"><app-spinner /></div>
   } @else if (failed()) {
@@ -12,7 +19,12 @@
       <app-empty-state
         icon="users"
         title="Ninguém na fila"
-        description="Clientes esperando por uma vaga na sua agenda aparecem aqui." />
+        description="Quando um cliente não encontrar horário, ele pode entrar na fila pela sua página de agendamento, ou você adiciona aqui.">
+        <app-button variant="secondary" (click)="addOpen.set(true)">
+          <app-icon name="plus" [size]="16" />
+          Adicionar à fila
+        </app-button>
+      </app-empty-state>
     </app-card>
   } @else {
     <div class="mb-3 flex gap-2 overflow-x-auto xl:hidden">
@@ -249,6 +261,20 @@
       </button>
     </div>
   </ng-template>
+
+  <button
+    type="button"
+    class="fixed bottom-20 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30 transition hover:bg-primary-600 md:hidden"
+    aria-label="Adicionar à fila"
+    (click)="addOpen.set(true)">
+    <app-icon name="plus" [size]="24" />
+  </button>
+
+  <app-sheet title="Adicionar à fila" [(open)]="addOpen">
+    @if (addOpen()) {
+      <app-add-to-waitlist-form [professionalId]="professionalId" [services]="services()" (added)="onAdded()" />
+    }
+  </app-sheet>
 
   <app-sheet title="Agendar da fila" [open]="!!bookTarget()" (openChange)="setBookOpen($event)">
     @if (bookTarget(); as target) {

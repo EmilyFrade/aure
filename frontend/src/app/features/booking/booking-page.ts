@@ -7,13 +7,16 @@ import {
   AppointmentResponse,
   PublicProfessional,
   PublicProfile,
-  PublicService
+  DayPeriod,
+  PublicService,
+  WaitingListEntry
 } from '../../core/models/api.models';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { AvailabilityService } from '../../core/services/availability.service';
 import { ClientAuthService } from '../../core/services/client-auth.service';
 import { PublicProfileService } from '../../core/services/public-profile.service';
 import { SessionStore } from '../../core/services/session-store';
+import { WaitingListService } from '../../core/services/waiting-list.service';
 import { ToastService } from '../../shared/feedback/toast.service';
 import { PublicShell } from '../../shared/layout/public-shell';
 import { ActionBar } from '../../shared/ui/action-bar';
@@ -27,15 +30,17 @@ import { OtpInput } from '../../shared/ui/otp-input';
 import { Spinner } from '../../shared/ui/spinner';
 import { Stepper } from '../../shared/ui/stepper';
 import { TextField } from '../../shared/ui/text-field';
-import { apiErrorMessage, formatDuration, formatPrice } from '../../shared/utils/format';
+import { DAY_PERIODS, apiErrorMessage, formatDuration, formatPrice, formatWaitPeriod } from '../../shared/utils/format';
 import { digitsOnly, maskPhoneBR } from '../../shared/utils/masks';
 
 type Step = 'loading' | 'not-found' | 'profile' | 'schedule' | 'confirm' | 'done';
 type VerifyPhase = 'checking' | 'phone' | 'code' | 'name' | 'ready';
+type Mode = 'appointment' | 'waitlist';
 
 const BOOKING_WINDOW_DAYS = 60;
 const RESEND_SECONDS = 30;
 const OTP_LENGTH = 6;
+const WAITLIST_DAYS = [1, 7, 15];
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 const shortDate = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long' });
@@ -73,6 +78,7 @@ export class BookingPage {
   private readonly availabilityService = inject(AvailabilityService);
   private readonly clientAuthService = inject(ClientAuthService);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly waitingListService = inject(WaitingListService);
   private readonly session = inject(SessionStore);
   private readonly toast = inject(ToastService);
 
@@ -103,9 +109,17 @@ export class BookingPage {
 
   protected readonly confirmed = signal<AppointmentResponse | null>(null);
 
+  protected readonly mode = signal<Mode>('appointment');
+  protected readonly waitlistOptions = WAITLIST_DAYS;
+  protected readonly waitlistDays = signal(7);
+  protected readonly waitlistPeriod = signal<DayPeriod | null>(null);
+  protected readonly dayPeriods = DAY_PERIODS;
+  protected readonly joined = signal<WaitingListEntry | null>(null);
+
   protected readonly formatPrice = formatPrice;
   protected readonly formatDuration = formatDuration;
   protected readonly maskPhone = maskPhoneBR;
+  protected readonly formatWaitPeriod = formatWaitPeriod;
 
   protected readonly bookable = computed(() =>
     (this.profile()?.professionals ?? []).filter((p) => p.services.length > 0)
@@ -143,6 +157,15 @@ export class BookingPage {
     const service = this.selectedService();
     return slot && service ? addMinutes(slot, service.duration_minutes) : null;
   });
+
+  protected readonly waitlistEnd = computed(() => {
+    const end = addDays(this.selectedDate(), this.waitlistDays() - 1);
+    return end > this.maxDate ? this.maxDate : end;
+  });
+
+  protected waitlistLabel(days: number): string {
+    return days === 1 ? `Só dia ${parseIso(this.selectedDate()).getDate()}` : `Até ${days} dias`;
+  }
 
   protected readonly canRequestCode = computed(() => digitsOnly(this.phone()).length >= 10);
 
@@ -208,6 +231,17 @@ export class BookingPage {
 
   protected advance(): void {
     if (!this.selectedSlot()) return;
+    this.mode.set('appointment');
+    this.openConfirm();
+  }
+
+  protected joinWaitlist(): void {
+    this.selectedSlot.set(null);
+    this.mode.set('waitlist');
+    this.openConfirm();
+  }
+
+  private openConfirm(): void {
     this.otp.set('');
     this.otpError.set(null);
     this.goTo('confirm');
@@ -221,12 +255,16 @@ export class BookingPage {
   }
 
   protected backToSchedule(): void {
+    this.mode.set('appointment');
+    this.joined.set(null);
     this.goTo('schedule');
     this.loadAvailability();
   }
 
   protected bookAnother(): void {
     this.confirmed.set(null);
+    this.joined.set(null);
+    this.mode.set('appointment');
     this.selectedService.set(null);
     this.selectedSlot.set(null);
     this.goTo('profile');
@@ -290,29 +328,25 @@ export class BookingPage {
   protected confirm(): void {
     const professional = this.selectedProfessional();
     const service = this.selectedService();
-    const slot = this.selectedSlot();
-    if (!professional || !service || !slot || !this.canConfirm() || this.submitting()) return;
+    if (!professional || !service || !this.canConfirm() || this.submitting()) return;
 
-    const create = (): Observable<AppointmentResponse> =>
+    if (this.mode() === 'waitlist') {
+      this.submitWaitlist(professional, service);
+      return;
+    }
+
+    const slot = this.selectedSlot();
+    if (!slot) return;
+
+    this.submitting.set(true);
+    this.withName(() =>
       this.appointmentService.create({
         professional_id: professional.id,
         service_id: service.id,
         scheduled_date: this.selectedDate(),
         scheduled_time: slot
-      });
-
-    const request$ =
-      this.verifyPhase() === 'name'
-        ? this.clientAuthService.updateName(this.nameInput().trim()).pipe(
-            switchMap((client) => {
-              this.clientName.set(client.name);
-              return create();
-            })
-          )
-        : create();
-
-    this.submitting.set(true);
-    request$.subscribe({
+      })
+    ).subscribe({
       next: (appointment) => {
         this.submitting.set(false);
         this.confirmed.set(appointment);
@@ -323,6 +357,41 @@ export class BookingPage {
         this.handleConfirmError(err);
       }
     });
+  }
+
+  private submitWaitlist(professional: PublicProfessional, service: PublicService): void {
+    this.submitting.set(true);
+    this.withName(() =>
+      this.waitingListService.join({
+        professional_id: professional.id,
+        service_id: service.id,
+        preferred_date_start: this.selectedDate(),
+        preferred_date_end: this.waitlistEnd(),
+        preferred_period: this.waitlistPeriod()
+      })
+    ).subscribe({
+      next: (entry) => {
+        this.submitting.set(false);
+        this.joined.set(entry);
+        this.goTo('done');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        if (err.status === 401) this.handleConfirmError(err);
+        else if (err.status > 0 && err.status < 500) this.toast.error(apiErrorMessage(err, 'Não foi possível entrar na fila.'));
+      }
+    });
+  }
+
+  private withName<T>(request: () => Observable<T>): Observable<T> {
+    if (this.verifyPhase() !== 'name') return request();
+    return this.clientAuthService.updateName(this.nameInput().trim()).pipe(
+      switchMap((client) => {
+        this.clientName.set(client.name);
+        this.verifyPhase.set('ready');
+        return request();
+      })
+    );
   }
 
   protected describeDate(iso: string): string {

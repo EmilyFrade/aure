@@ -100,25 +100,98 @@
                 </app-card>
               </li>
             } @empty {
-              <li>
-                <app-card>
-                  <app-empty-state
-                    icon="calendar"
-                    [title]="tab() === 'upcoming' ? 'Nenhum horário marcado' : 'Nada por aqui ainda'"
-                    [description]="tab() === 'upcoming' ? 'Encontre um profissional e agende em poucos toques.' : 'Seus atendimentos anteriores e cancelados aparecem aqui.'">
-                    @if (tab() === 'upcoming') {
-                      <a
-                        routerLink="/buscar"
-                        class="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600">
-                        <app-icon name="search" [size]="16" />
-                        Buscar profissionais
-                      </a>
-                    }
-                  </app-empty-state>
-                </app-card>
-              </li>
+              @if (tab() === 'history' || waitlist().length === 0) {
+                <li>
+                  <app-card>
+                    <app-empty-state
+                      icon="calendar"
+                      [title]="tab() === 'upcoming' ? 'Nenhum horário marcado' : 'Nada por aqui ainda'"
+                      [description]="tab() === 'upcoming' ? 'Encontre um profissional e agende em poucos toques.' : 'Seus atendimentos anteriores e cancelados aparecem aqui.'">
+                      @if (tab() === 'upcoming') {
+                        <a
+                          routerLink="/buscar"
+                          class="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600">
+                          <app-icon name="search" [size]="16" />
+                          Buscar profissionais
+                        </a>
+                      }
+                    </app-empty-state>
+                  </app-card>
+                </li>
+              }
             }
           </ul>
+
+          @if (tab() === 'upcoming' && waitlist().length > 0) {
+            <h2 class="mb-3 flex items-center gap-2 font-display text-base font-semibold text-slate-800" [class.mt-6]="upcoming().length > 0">
+              <app-icon name="bell" [size]="18" class="text-primary-400" />
+              Fila de espera
+            </h2>
+            <ul class="space-y-3">
+              @for (entry of waitlist(); track entry.id) {
+                <li>
+                  <app-card [padded]="false">
+                    <div class="flex items-center gap-3 px-4 pt-4">
+                      <app-avatar [name]="entry.professional_name" [photoUrl]="entry.professional_photo_url" [size]="44" />
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate font-display font-semibold text-slate-900">{{ entry.brand_name }}</p>
+                        <p class="truncate text-sm text-slate-500">com {{ entry.professional_name }}</p>
+                      </div>
+                      @if (entry.status === 'NOTIFIED') {
+                        <app-badge variant="success">Vaga aberta</app-badge>
+                      } @else {
+                        <app-badge variant="neutral">Na fila</app-badge>
+                      }
+                    </div>
+
+                    <dl class="mx-4 mt-3 space-y-1.5 rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm">
+                      <div class="flex items-center gap-2 text-slate-700">
+                        <app-icon name="sparkles" [size]="15" class="text-primary-400" />
+                        <dt class="sr-only">Serviço</dt>
+                        <dd class="min-w-0 flex-1 truncate">{{ entry.service_name }}</dd>
+                      </div>
+                      <div class="flex items-center gap-2 text-slate-700">
+                        <app-icon name="calendar" [size]="15" class="text-primary-400" />
+                        <dt class="sr-only">Período</dt>
+                        <dd>{{ formatWaitPeriod(entry.preferred_date_start, entry.preferred_date_end, entry.preferred_period) }}</dd>
+                      </div>
+                      @if (entry.status === 'WAITING') {
+                        <div class="flex items-center gap-2 text-slate-700">
+                          <app-icon name="users" [size]="15" class="text-primary-400" />
+                          <dt class="sr-only">Posição</dt>
+                          <dd>{{ entry.position }}º lugar na fila</dd>
+                        </div>
+                      }
+                    </dl>
+
+                    @if (entry.status === 'NOTIFIED' && entry.offered_date) {
+                      <p class="mx-4 mt-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+                        Abriu um horário {{ describeOffer(entry) }}. Agende antes que outra pessoa pegue.
+                      </p>
+                    }
+
+                    <div class="flex items-center gap-2 px-4 py-3">
+                      @if (entry.status === 'NOTIFIED') {
+                        <a
+                          [routerLink]="['/agendar', entry.brand_slug]"
+                          [queryParams]="{ profissional: entry.professional_id }"
+                          class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
+                          Agendar agora
+                          <app-icon name="arrow-right" [size]="16" />
+                        </a>
+                      }
+                      <button
+                        type="button"
+                        class="ml-auto rounded-xl px-3 py-2 text-sm font-medium text-accent-600 transition hover:bg-accent-50"
+                        (click)="leaveTarget.set(entry)">
+                        Sair da fila
+                      </button>
+                    </div>
+                  </app-card>
+                </li>
+              }
+            </ul>
+          }
         }
       </div>
     }
@@ -196,6 +269,20 @@
       <div class="mt-5 grid grid-cols-2 gap-2">
         <app-button variant="outline" (click)="cancelTarget.set(null)">Voltar</app-button>
         <app-button variant="danger" [loading]="cancelling()" (click)="confirmCancel()">Cancelar horário</app-button>
+      </div>
+    }
+  </app-sheet>
+
+  <app-sheet title="Sair da fila de espera?" [open]="!!leaveTarget()" (openChange)="setLeaveOpen($event)">
+    @if (leaveTarget(); as target) {
+      <p class="text-sm text-slate-600">
+        {{ target.service_name }} com {{ target.professional_name }}<br />
+        {{ formatWaitPeriod(target.preferred_date_start, target.preferred_date_end, target.preferred_period) }}
+      </p>
+      <p class="mt-3 text-sm text-slate-500">Você não recebe mais aviso se abrir um horário. Para voltar, é preciso entrar de novo no fim da fila.</p>
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <app-button variant="outline" (click)="leaveTarget.set(null)">Voltar</app-button>
+        <app-button variant="danger" [loading]="leaving()" (click)="confirmLeave()">Sair da fila</app-button>
       </div>
     }
   </app-sheet>

@@ -2,10 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AppointmentResponse, AppointmentStatus } from '../../core/models/api.models';
+import { forkJoin } from 'rxjs';
+import { AppointmentResponse, AppointmentStatus, WaitingListEntry } from '../../core/models/api.models';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { ClientAuthService } from '../../core/services/client-auth.service';
 import { SessionStore } from '../../core/services/session-store';
+import { WaitingListService } from '../../core/services/waiting-list.service';
 import { ToastService } from '../../shared/feedback/toast.service';
 import { PublicShell } from '../../shared/layout/public-shell';
 import { Avatar } from '../../shared/ui/avatar';
@@ -18,7 +20,7 @@ import { OtpInput } from '../../shared/ui/otp-input';
 import { Sheet } from '../../shared/ui/sheet';
 import { Spinner } from '../../shared/ui/spinner';
 import { TextField } from '../../shared/ui/text-field';
-import { apiErrorMessage, formatPrice } from '../../shared/utils/format';
+import { apiErrorMessage, formatWaitPeriod, formatPrice } from '../../shared/utils/format';
 import { digitsOnly, maskPhoneBR } from '../../shared/utils/masks';
 
 type Phase = 'checking' | 'phone' | 'code' | 'list';
@@ -60,6 +62,7 @@ const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numer
 export class ClientAppointments {
   private readonly clientAuth = inject(ClientAuthService);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly waitingListService = inject(WaitingListService);
   private readonly session = inject(SessionStore);
   private readonly toast = inject(ToastService);
 
@@ -79,8 +82,13 @@ export class ClientAppointments {
   protected readonly cancelTarget = signal<AppointmentResponse | null>(null);
   protected readonly cancelling = signal(false);
 
+  protected readonly waitlist = signal<WaitingListEntry[]>([]);
+  protected readonly leaveTarget = signal<WaitingListEntry | null>(null);
+  protected readonly leaving = signal(false);
+
   protected readonly status = STATUS;
   protected readonly formatPrice = formatPrice;
+  protected readonly formatWaitPeriod = formatWaitPeriod;
   protected readonly maskPhone = maskPhoneBR;
 
   protected readonly canRequestCode = computed(() => digitsOnly(this.phone()).length >= 10);
@@ -182,9 +190,10 @@ export class ClientAppointments {
   protected load(): void {
     this.loading.set(true);
     this.failed.set(false);
-    this.appointmentService.listMine().subscribe({
-      next: (list) => {
-        this.appointments.set(list);
+    forkJoin([this.appointmentService.listMine(), this.waitingListService.listMine()]).subscribe({
+      next: ([appointments, waitlist]) => {
+        this.appointments.set(appointments);
+        this.waitlist.set(waitlist);
         this.loading.set(false);
       },
       error: (err: HttpErrorResponse) => {
@@ -225,6 +234,39 @@ export class ClientAppointments {
     if (!open) this.cancelTarget.set(null);
   }
 
+  protected confirmLeave(): void {
+    const target = this.leaveTarget();
+    if (!target || this.leaving()) return;
+
+    this.leaving.set(true);
+    this.waitingListService.leave(target.id).subscribe({
+      next: () => {
+        this.leaving.set(false);
+        this.leaveTarget.set(null);
+        this.waitlist.update((list) => list.filter((entry) => entry.id !== target.id));
+        this.toast.success('Você saiu da fila.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.leaving.set(false);
+        if (err.status > 0 && err.status < 500) {
+          this.toast.error(apiErrorMessage(err, 'Não foi possível sair da fila.'));
+          this.leaveTarget.set(null);
+          this.load();
+        }
+      }
+    });
+  }
+
+  protected setLeaveOpen(open: boolean): void {
+    if (!open) this.leaveTarget.set(null);
+  }
+
+  protected describeOffer(entry: WaitingListEntry): string {
+    if (!entry.offered_date || !entry.offered_time) return '';
+    const label = longDate.format(new Date(`${entry.offered_date}T12:00:00`));
+    return `${label}, às ${entry.offered_time}`;
+  }
+
   protected describeDate(appointment: AppointmentResponse): string {
     const label = longDate.format(new Date(`${appointment.scheduled_date}T12:00:00`));
     return label.charAt(0).toUpperCase() + label.slice(1);
@@ -240,6 +282,7 @@ export class ClientAppointments {
   private reset(): void {
     this.session.clearClientSession();
     this.appointments.set([]);
+    this.waitlist.set([]);
     this.clientName.set(null);
     this.phone.set('');
     this.otp.set('');

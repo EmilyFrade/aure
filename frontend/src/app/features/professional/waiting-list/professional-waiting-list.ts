@@ -19,10 +19,11 @@ import { Spinner } from '../../../shared/ui/spinner';
 import { apiErrorMessage, formatWaitPeriod } from '../../../shared/utils/format';
 import { clientLabel, describeShort, isoToday } from '../agenda/agenda-utils';
 import { NewAppointmentForm } from '../agenda/new-appointment-form';
+import { AddToWaitlistForm } from './add-to-waitlist-form';
 
 @Component({
   selector: 'app-professional-waiting-list',
-  imports: [NgTemplateOutlet, FormsModule, AppShell, Avatar, Button, Card, EmptyState, Icon, NewAppointmentForm, Sheet, Spinner],
+  imports: [NgTemplateOutlet, FormsModule, AddToWaitlistForm, AppShell, Avatar, Button, Card, EmptyState, Icon, NewAppointmentForm, Sheet, Spinner],
   templateUrl: './professional-waiting-list.html'
 })
 export class ProfessionalWaitingList {
@@ -40,6 +41,7 @@ export class ProfessionalWaitingList {
   protected readonly statusFilter = signal<'ALL' | 'WAITING' | 'NOTIFIED'>('ALL');
   protected readonly menuFor = signal<number | null>(null);
 
+  protected readonly addOpen = signal(false);
   protected readonly bookTarget = signal<WaitingListEntry | null>(null);
   protected readonly removeTarget = signal<WaitingListEntry | null>(null);
   protected readonly removing = signal(false);
@@ -113,6 +115,11 @@ export class ProfessionalWaitingList {
 
   protected describeOffer(entry: WaitingListEntry): string {
     return entry.offered_date ? `${describeShort(entry.offered_date)}, ${entry.offered_time}` : '';
+  }
+
+  protected onAdded(): void {
+    this.addOpen.set(false);
+    this.load();
   }
 
   protected onBooked(): void {

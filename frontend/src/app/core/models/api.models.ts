@@ -207,6 +207,23 @@ export type WaitingListStatus = 'WAITING' | 'NOTIFIED' | 'CANCELLED';
 
 export type DayPeriod = 'MORNING' | 'AFTERNOON' | 'EVENING';
 
+export interface WaitingListRequest {
+  professional_id: number;
+  service_id: number;
+  preferred_date_start: string;
+  preferred_date_end: string;
+  preferred_period?: DayPeriod | null;
+}
+
+export interface ManualWaitingListRequest {
+  service_id: number;
+  client_phone: string;
+  client_name?: string;
+  preferred_date_start: string;
+  preferred_date_end: string;
+  preferred_period?: DayPeriod | null;
+}
+
 export interface WaitingListEntry {
   id: number;
   professional_id: number;

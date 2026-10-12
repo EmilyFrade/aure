@@ -3,6 +3,8 @@ package com.aure.messaging;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -15,10 +17,23 @@ public class AppointmentEventPublisher {
 	private final RabbitTemplate rabbitTemplate;
 
 	public void publish(AppointmentCreatedEvent event) {
-		rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY, event);
+		afterCommit(() -> rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY, event));
 	}
 
 	public void publish(AppointmentCancelledEvent event) {
-		rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY_CANCELLED, event);
+		afterCommit(() -> rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY_CANCELLED, event));
+	}
+
+	private void afterCommit(Runnable action) {
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			action.run();
+			return;
+		}
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				action.run();
+			}
+		});
 	}
 }

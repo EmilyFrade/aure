@@ -22,13 +22,38 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Long> 
 			@Param("statuses") Collection<WaitingListStatus> statuses,
 			@Param("today") LocalDate today);
 
+	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
+	@Query("SELECT w FROM WaitingList w WHERE w.client.id = :clientId AND w.status IN :statuses " +
+			"AND w.preferredDateEnd >= :today ORDER BY w.id ASC")
+	List<WaitingList> findActiveByClient(
+			@Param("clientId") Long clientId,
+			@Param("statuses") Collection<WaitingListStatus> statuses,
+			@Param("today") LocalDate today);
+
+	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
+	@Query("SELECT w FROM WaitingList w WHERE w.id = :id")
+	Optional<WaitingList> findByIdWithDetails(@Param("id") Long id);
+
 	Optional<WaitingList> findByIdAndClientId(Long id, Long clientId);
 
 	boolean existsByServiceId(Long serviceId);
 
 	Optional<WaitingList> findByIdAndProfessionalId(Long id, Long professionalId);
 
+	int countByProfessionalIdAndStatus(Long professionalId, WaitingListStatus status);
+
 	int countByProfessionalIdAndStatusAndIdLessThan(Long professionalId, WaitingListStatus status, Long id);
+
+	@Query("SELECT COUNT(w) > 0 FROM WaitingList w WHERE w.client.id = :clientId AND w.professional.id = :professionalId " +
+			"AND w.service.id = :serviceId AND w.status = :status " +
+			"AND w.preferredDateStart <= :end AND w.preferredDateEnd >= :start")
+	boolean existsOverlapping(
+			@Param("clientId") Long clientId,
+			@Param("professionalId") Long professionalId,
+			@Param("serviceId") Long serviceId,
+			@Param("status") WaitingListStatus status,
+			@Param("start") LocalDate start,
+			@Param("end") LocalDate end);
 
 	@Query("SELECT w FROM WaitingList w WHERE w.client.id = :clientId AND w.professional.id = :professionalId " +
 			"AND w.service.id = :serviceId AND w.status IN :statuses " +
@@ -41,13 +66,13 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Long> 
 			@Param("date") LocalDate date);
 
 	@EntityGraph(attributePaths = {"professional", "client", "service"})
-	@Query("SELECT w FROM WaitingList w WHERE w.professional.id = :professionalId AND w.service.id = :serviceId " +
-			"AND w.status = :status " +
+	@Query("SELECT w FROM WaitingList w WHERE w.professional.id = :professionalId " +
+			"AND w.status = :status AND w.client.id <> :excludedClientId " +
 			"AND w.preferredDateStart <= :date AND w.preferredDateEnd >= :date " +
 			"ORDER BY w.id ASC")
-	List<WaitingList> findMatchingWaitingEntries(
+	List<WaitingList> findWaitingForDate(
 			@Param("professionalId") Long professionalId,
-			@Param("serviceId") Long serviceId,
 			@Param("status") WaitingListStatus status,
-			@Param("date") LocalDate date);
+			@Param("date") LocalDate date,
+			@Param("excludedClientId") Long excludedClientId);
 }

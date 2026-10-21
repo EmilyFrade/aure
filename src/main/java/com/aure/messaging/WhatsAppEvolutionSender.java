@@ -108,9 +108,6 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	}
 
 	private static String describeDay(LocalDate date) {
-		LocalDate today = LocalDate.now();
-		if (date.equals(today)) return "Hoje";
-		if (date.equals(today.plusDays(1))) return "Amanhã";
 		String formatted = date.format(DATE_FORMAT);
 		return Character.toUpperCase(formatted.charAt(0)) + formatted.substring(1);
 	}

@@ -34,4 +34,12 @@ public class WhatsAppMessageSenderStub implements WhatsAppMessageSender {
 				message.brandName(), message.professionalName(), message.serviceName(),
 				message.date(), message.time(), message.clientName(), message.phone());
 	}
+
+	@Override
+	public boolean sendAppointmentReminder(AppointmentMessage message) {
+		log.info("[WhatsApp stub] Lembrete de {} com {} para {} em {} às {} - notificando {} ({})",
+				message.brandName(), message.professionalName(), message.serviceName(),
+				message.date(), message.time(), message.clientName(), message.phone());
+		return true;
+	}
 }

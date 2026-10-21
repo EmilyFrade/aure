@@ -25,3 +25,6 @@ whatsapp:
     url: ${EVOLUTION_URL:http://localhost:8085}
     api-key: ${EVOLUTION_API_KEY:aure-evolution-local}
     instance: ${EVOLUTION_INSTANCE:aure}
+
+reminder:
+  interval: ${REMINDER_INTERVAL:PT5M}

@@ -10,6 +10,7 @@ import com.aure.domain.Service;
 import com.aure.domain.WaitingList;
 import com.aure.domain.WaitingListStatus;
 import com.aure.messaging.AppointmentCancelledEvent;
+import com.aure.messaging.AppointmentMessage;
 import com.aure.messaging.WhatsAppMessageSender;
 import com.aure.repository.AppointmentRepository;
 import com.aure.repository.ClientRepository;
@@ -200,13 +201,7 @@ public class WaitingListService {
 		waitingListRepository.save(entry);
 
 		whatsAppMessageSender.notifyWaitingListSlot(
-				entry.getClient().getPhone(),
-				entry.getClient().getName(),
-				entry.getProfessional().getBrand().getName(),
-				entry.getProfessional().getName(),
-				entry.getService().getName(),
-				date,
-				time);
+				AppointmentMessage.of(entry.getClient(), entry.getProfessional(), entry.getService(), date, time));
 	}
 
 	private void close(WaitingList entry) {

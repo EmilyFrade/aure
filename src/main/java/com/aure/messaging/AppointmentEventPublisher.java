@@ -13,6 +13,9 @@ public class AppointmentEventPublisher {
 	public static final String EXCHANGE = "aure.events";
 	public static final String ROUTING_KEY = "appointment.created";
 	public static final String ROUTING_KEY_CANCELLED = "appointment.cancelled";
+	public static final String QUEUE_CREATED_WHATSAPP = "appointment.created.whatsapp";
+	public static final String QUEUE_CANCELLED_WHATSAPP = "appointment.cancelled.whatsapp";
+	public static final String QUEUE_CANCELLED_WAITING_LIST = "appointment.cancelled.waiting-list";
 
 	private final RabbitTemplate rabbitTemplate;
 

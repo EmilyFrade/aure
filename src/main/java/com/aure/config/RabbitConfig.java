@@ -18,25 +18,37 @@ public class RabbitConfig {
 	}
 
 	@Bean
-	public Queue appointmentCreatedQueue() {
-		return new Queue(AppointmentEventPublisher.ROUTING_KEY, true);
+	public Queue appointmentCreatedWhatsAppQueue() {
+		return new Queue(AppointmentEventPublisher.QUEUE_CREATED_WHATSAPP, true);
 	}
 
 	@Bean
-	public Binding appointmentCreatedBinding(Queue appointmentCreatedQueue, TopicExchange aureEventsExchange) {
-		return BindingBuilder.bind(appointmentCreatedQueue)
+	public Binding appointmentCreatedWhatsAppBinding(Queue appointmentCreatedWhatsAppQueue, TopicExchange aureEventsExchange) {
+		return BindingBuilder.bind(appointmentCreatedWhatsAppQueue)
 				.to(aureEventsExchange)
 				.with(AppointmentEventPublisher.ROUTING_KEY);
 	}
 
 	@Bean
-	public Queue appointmentCancelledQueue() {
-		return new Queue(AppointmentEventPublisher.ROUTING_KEY_CANCELLED, true);
+	public Queue appointmentCancelledWhatsAppQueue() {
+		return new Queue(AppointmentEventPublisher.QUEUE_CANCELLED_WHATSAPP, true);
 	}
 
 	@Bean
-	public Binding appointmentCancelledBinding(Queue appointmentCancelledQueue, TopicExchange aureEventsExchange) {
-		return BindingBuilder.bind(appointmentCancelledQueue)
+	public Binding appointmentCancelledWhatsAppBinding(Queue appointmentCancelledWhatsAppQueue, TopicExchange aureEventsExchange) {
+		return BindingBuilder.bind(appointmentCancelledWhatsAppQueue)
+				.to(aureEventsExchange)
+				.with(AppointmentEventPublisher.ROUTING_KEY_CANCELLED);
+	}
+
+	@Bean
+	public Queue appointmentCancelledWaitingListQueue() {
+		return new Queue(AppointmentEventPublisher.QUEUE_CANCELLED_WAITING_LIST, true);
+	}
+
+	@Bean
+	public Binding appointmentCancelledWaitingListBinding(Queue appointmentCancelledWaitingListQueue, TopicExchange aureEventsExchange) {
+		return BindingBuilder.bind(appointmentCancelledWaitingListQueue)
 				.to(aureEventsExchange)
 				.with(AppointmentEventPublisher.ROUTING_KEY_CANCELLED);
 	}

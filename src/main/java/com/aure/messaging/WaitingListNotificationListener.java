@@ -11,7 +11,7 @@ public class WaitingListNotificationListener {
 
 	private final WaitingListService waitingListService;
 
-	@RabbitListener(queues = AppointmentEventPublisher.ROUTING_KEY_CANCELLED)
+	@RabbitListener(queues = AppointmentEventPublisher.QUEUE_CANCELLED_WAITING_LIST)
 	public void onAppointmentCancelled(AppointmentCancelledEvent event) {
 		waitingListService.notifyNextInQueue(event);
 	}

@@ -9,5 +9,6 @@ public record AppointmentCancelledEvent(
 		Long clientId,
 		Long serviceId,
 		LocalDate scheduledDate,
-		LocalTime scheduledTime
+		LocalTime scheduledTime,
+		boolean byProfessional
 ) {}

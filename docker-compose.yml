@@ -7,3 +7,32 @@ services:
       POSTGRES_PASSWORD: aure
     ports:
       - "5432:5432"
+
+  evolution:
+    image: evoapicloud/evolution-api:v2.3.7
+    depends_on:
+      - postgres
+    environment:
+      SERVER_URL: http://localhost:8085
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-aure-evolution-local}
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://aure:aure@postgres:5432/aure?schema=evolution_api
+      DATABASE_CONNECTION_CLIENT_NAME: aure
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "false"
+      DATABASE_SAVE_DATA_CHATS: "false"
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      CONFIG_SESSION_PHONE_CLIENT: Aure
+      CONFIG_SESSION_PHONE_NAME: Chrome
+      LOG_LEVEL: ERROR,WARN,INFO
+      DEL_INSTANCE: "false"
+      LANGUAGE: pt-BR
+    ports:
+      - "8085:8080"
+    volumes:
+      - evolution_instances:/evolution/instances
+
+volumes:
+  evolution_instances:

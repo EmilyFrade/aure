@@ -201,6 +201,8 @@ public class WaitingListService {
 
 		whatsAppMessageSender.notifyWaitingListSlot(
 				entry.getClient().getPhone(),
+				entry.getClient().getName(),
+				entry.getProfessional().getBrand().getName(),
 				entry.getProfessional().getName(),
 				entry.getService().getName(),
 				date,

@@ -16,3 +16,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+whatsapp:
+  provider: ${WHATSAPP_PROVIDER:stub}
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}
+  allowed-numbers: ${WHATSAPP_ALLOWED_NUMBERS:}
+  evolution:
+    url: ${EVOLUTION_URL:http://localhost:8085}
+    api-key: ${EVOLUTION_API_KEY:aure-evolution-local}
+    instance: ${EVOLUTION_INSTANCE:aure}

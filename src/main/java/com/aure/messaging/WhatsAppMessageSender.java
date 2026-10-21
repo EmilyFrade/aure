@@ -7,5 +7,5 @@ public interface WhatsAppMessageSender {
 
 	void sendOtp(String phone, String code);
 
-	void notifyWaitingListSlot(String phone, String professionalName, String serviceName, LocalDate date, LocalTime time);
+	void notifyWaitingListSlot(String phone, String clientName, String brandName, String professionalName, String serviceName, LocalDate date, LocalTime time);
 }

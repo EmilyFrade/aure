@@ -1,11 +1,12 @@
 package com.aure.messaging;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 public interface WhatsAppMessageSender {
 
 	void sendOtp(String phone, String code);
 
-	void notifyWaitingListSlot(String phone, String clientName, String brandName, String professionalName, String serviceName, LocalDate date, LocalTime time);
+	void notifyAppointmentCreated(AppointmentMessage message, boolean byProfessional);
+
+	void notifyAppointmentCancelled(AppointmentMessage message);
+
+	void notifyWaitingListSlot(AppointmentMessage message);
 }

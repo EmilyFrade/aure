@@ -4,9 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "whatsapp.provider", havingValue = "stub", matchIfMissing = true)
@@ -18,7 +15,23 @@ public class WhatsAppMessageSenderStub implements WhatsAppMessageSender {
 	}
 
 	@Override
-	public void notifyWaitingListSlot(String phone, String clientName, String brandName, String professionalName, String serviceName, LocalDate date, LocalTime time) {
-		log.info("[WhatsApp stub] Vaga liberada em {} com {} para {} em {} às {} - notificando {} ({})", brandName, professionalName, serviceName, date, time, clientName, phone);
+	public void notifyAppointmentCreated(AppointmentMessage message, boolean byProfessional) {
+		log.info("[WhatsApp stub] Agendamento {}em {} com {} para {} em {} às {} - notificando {} ({})",
+				byProfessional ? "manual " : "", message.brandName(), message.professionalName(), message.serviceName(),
+				message.date(), message.time(), message.clientName(), message.phone());
+	}
+
+	@Override
+	public void notifyAppointmentCancelled(AppointmentMessage message) {
+		log.info("[WhatsApp stub] Cancelamento pelo profissional em {} com {} para {} em {} às {} - notificando {} ({})",
+				message.brandName(), message.professionalName(), message.serviceName(),
+				message.date(), message.time(), message.clientName(), message.phone());
+	}
+
+	@Override
+	public void notifyWaitingListSlot(AppointmentMessage message) {
+		log.info("[WhatsApp stub] Vaga liberada em {} com {} para {} em {} às {} - notificando {} ({})",
+				message.brandName(), message.professionalName(), message.serviceName(),
+				message.date(), message.time(), message.clientName(), message.phone());
 	}
 }

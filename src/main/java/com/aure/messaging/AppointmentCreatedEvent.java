@@ -9,5 +9,6 @@ public record AppointmentCreatedEvent(
 		Long clientId,
 		Long serviceId,
 		LocalDate scheduledDate,
-		LocalTime scheduledTime
+		LocalTime scheduledTime,
+		boolean byProfessional
 ) {}

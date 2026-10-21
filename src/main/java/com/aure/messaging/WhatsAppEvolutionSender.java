@@ -15,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
@@ -65,17 +64,40 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	}
 
 	@Override
-	public void notifyWaitingListSlot(String phone, String clientName, String brandName, String professionalName, String serviceName, LocalDate date, LocalTime time) {
-		String text = greeting(clientName) + "\n"
-				+ "Abriu uma vaga em *" + brandName + "* para o serviço que você estava esperando. Confira os detalhes:\n\n"
-				+ "📅 *Serviço*\n" + serviceName + "\n"
-				+ "🕐 *Horário*\n" + describeDay(date) + ", às " + time.format(TIME_FORMAT) + "\n"
-				+ "📍 *Profissional*\n" + professionalName + "\n\n"
+	public void notifyAppointmentCreated(AppointmentMessage message, boolean byProfessional) {
+		String intro = byProfessional
+				? "Um horário foi agendado para você em *" + message.brandName() + "*. Confira os detalhes:"
+				: "Seu horário em *" + message.brandName() + "* está agendado. Confira os detalhes:";
+		String text = greeting(message.clientName()) + "\n"
+				+ intro + "\n\n"
+				+ details(message) + "\n\n"
+				+ "Para ver ou cancelar, acesse:\n"
+				+ frontendUrl + "/meus-agendamentos";
+
+		sendText(message.phone(), text);
+	}
+
+	@Override
+	public void notifyAppointmentCancelled(AppointmentMessage message) {
+		String text = greeting(message.clientName()) + "\n"
+				+ "*" + message.brandName() + "* precisou cancelar o seu horário:\n\n"
+				+ details(message) + "\n\n"
+				+ "Se quiser, escolha outro horário por aqui:\n"
+				+ frontendUrl + "/agendar/" + message.brandSlug() + "?profissional=" + message.professionalId();
+
+		sendText(message.phone(), text);
+	}
+
+	@Override
+	public void notifyWaitingListSlot(AppointmentMessage message) {
+		String text = greeting(message.clientName()) + "\n"
+				+ "Abriu uma vaga em *" + message.brandName() + "* para o serviço que você estava esperando. Confira os detalhes:\n\n"
+				+ details(message) + "\n\n"
 				+ "Para garantir a vaga, agende por aqui:\n"
 				+ frontendUrl + "/meus-agendamentos\n\n"
 				+ "A vaga fica com quem agendar primeiro.";
 
-		sendText(phone, text);
+		sendText(message.phone(), text);
 	}
 
 	private boolean sendText(String phone, String text) {
@@ -100,6 +122,12 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 			log.error("[WhatsApp] falha ao enviar para {} pela Evolution: {}", to, e.getMessage());
 		}
 		return false;
+	}
+
+	private static String details(AppointmentMessage message) {
+		return "📅 *Serviço*\n" + message.serviceName() + "\n"
+				+ "🕐 *Horário*\n" + describeDay(message.date()) + ", às " + message.time().format(TIME_FORMAT) + "\n"
+				+ "📍 *Profissional*\n" + message.professionalName();
 	}
 
 	private static String greeting(String clientName) {

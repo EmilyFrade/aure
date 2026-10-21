@@ -79,7 +79,8 @@ public class AppointmentService {
 				client.getId(),
 				service.getId(),
 				request.scheduledDate(),
-				request.scheduledTime()
+				request.scheduledTime(),
+				false
 		));
 
 		return appointmentRepository.findByIdWithDetails(appointment.getId()).map(AppointmentResponseDto::from).orElseThrow();
@@ -99,7 +100,7 @@ public class AppointmentService {
 		if (!LocalDateTime.of(appointment.getScheduledDate(), appointment.getScheduledTime()).isAfter(LocalDateTime.now())) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Esse horário já passou e não pode mais ser cancelado");
 		}
-		return AppointmentResponseDto.from(cancel(appointment));
+		return AppointmentResponseDto.from(cancel(appointment, false));
 	}
 
 	@Transactional
@@ -107,7 +108,7 @@ public class AppointmentService {
 		professionalService.requireOwnership(professionalId);
 		Appointment appointment = appointmentRepository.findByIdAndProfessionalId(appointmentId, professionalId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
-		return AppointmentResponseDto.from(cancel(appointment));
+		return AppointmentResponseDto.from(cancel(appointment, true));
 	}
 
 	@Transactional(readOnly = true)
@@ -158,7 +159,8 @@ public class AppointmentService {
 				client.getId(),
 				service.getId(),
 				request.scheduledDate(),
-				request.scheduledTime()
+				request.scheduledTime(),
+				true
 		));
 
 		return appointmentRepository.findByIdWithDetails(appointment.getId()).map(AppointmentResponseDto::from).orElseThrow();
@@ -197,7 +199,7 @@ public class AppointmentService {
 		return AppointmentResponseDto.from(appointmentRepository.save(appointment));
 	}
 
-	private Appointment cancel(Appointment appointment) {
+	private Appointment cancel(Appointment appointment, boolean byProfessional) {
 		if (TERMINAL_STATUSES.contains(appointment.getStatus())) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento não pode mais ser cancelado");
 		}
@@ -212,7 +214,8 @@ public class AppointmentService {
 				appointment.getClient().getId(),
 				appointment.getService().getId(),
 				appointment.getScheduledDate(),
-				appointment.getScheduledTime()
+				appointment.getScheduledTime(),
+				byProfessional
 		));
 
 		return appointment;

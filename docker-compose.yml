@@ -8,6 +8,12 @@ services:
     ports:
       - "5432:5432"
 
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   evolution:
     image: evoapicloud/evolution-api:v2.3.7
     depends_on:

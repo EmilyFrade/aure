@@ -44,6 +44,13 @@ public class AppointmentReminder {
 	@Column(name = "sent_at", nullable = false, updatable = false)
 	private Instant sentAt;
 
+	@Enumerated(EnumType.STRING)
+	@Column(length = 20)
+	private ReminderResponse response;
+
+	@Column(name = "responded_at")
+	private Instant respondedAt;
+
 	@PrePersist
 	void onCreate() {
 		sentAt = Instant.now();

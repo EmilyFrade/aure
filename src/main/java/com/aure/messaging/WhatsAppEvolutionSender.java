@@ -83,7 +83,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 				+ "*" + message.brandName() + "* precisou cancelar o seu horário:\n\n"
 				+ details(message, describeDay(message.date())) + "\n\n"
 				+ "Se quiser, escolha outro horário por aqui:\n"
-				+ frontendUrl + "/agendar/" + message.brandSlug() + "?profissional=" + message.professionalId();
+				+ bookingUrl(message);
 
 		sendText(message.phone(), text);
 	}
@@ -105,10 +105,29 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 		String text = greeting(message.clientName()) + "\n"
 				+ "Passando para lembrar do seu horário em *" + message.brandName() + "*:\n\n"
 				+ details(message, describeDayFromToday(message.date())) + "\n\n"
-				+ "Se não puder ir, cancele por aqui para liberar o horário:\n"
-				+ frontendUrl + "/meus-agendamentos";
+				+ "Responda *1* para confirmar ou *2* para cancelar.";
 
 		return sendText(message.phone(), text);
+	}
+
+	@Override
+	public void notifyReminderConfirmed(AppointmentMessage message) {
+		String text = greeting(message.clientName()) + "\n"
+				+ "Presença confirmada! Te esperamos em *" + message.brandName() + "*:\n\n"
+				+ details(message, describeDayFromToday(message.date()));
+
+		sendText(message.phone(), text);
+	}
+
+	@Override
+	public void notifyReminderCancelled(AppointmentMessage message) {
+		String text = greeting(message.clientName()) + "\n"
+				+ "Seu horário em *" + message.brandName() + "* foi cancelado:\n\n"
+				+ details(message, describeDayFromToday(message.date())) + "\n\n"
+				+ "Se quiser, escolha outro horário por aqui:\n"
+				+ bookingUrl(message);
+
+		sendText(message.phone(), text);
 	}
 
 	private boolean sendText(String phone, String text) {
@@ -133,6 +152,10 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 			log.error("[WhatsApp] falha ao enviar para {} pela Evolution: {}", to, e.getMessage());
 		}
 		return false;
+	}
+
+	private String bookingUrl(AppointmentMessage message) {
+		return frontendUrl + "/agendar/" + message.brandSlug() + "?profissional=" + message.professionalId();
 	}
 
 	private static String details(AppointmentMessage message, String day) {

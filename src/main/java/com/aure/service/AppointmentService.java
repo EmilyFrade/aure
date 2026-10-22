@@ -199,6 +199,19 @@ public class AppointmentService {
 		return AppointmentResponseDto.from(appointmentRepository.save(appointment));
 	}
 
+	@Transactional
+	public void confirmByReminder(Appointment appointment) {
+		if (appointment.getStatus() != AppointmentStatus.PENDING) return;
+		appointment.setStatus(AppointmentStatus.CONFIRMED);
+		appointment.setConfirmedAt(Instant.now());
+		appointmentRepository.save(appointment);
+	}
+
+	@Transactional
+	public void cancelByReminder(Appointment appointment) {
+		cancel(appointment, false);
+	}
+
 	private Appointment cancel(Appointment appointment, boolean byProfessional) {
 		if (TERMINAL_STATUSES.contains(appointment.getStatus())) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento não pode mais ser cancelado");

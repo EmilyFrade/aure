@@ -9,4 +9,6 @@ public interface WhatsAppMessageSender {
 	void notifyAppointmentCancelled(AppointmentMessage message);
 
 	void notifyWaitingListSlot(AppointmentMessage message);
+
+	boolean sendAppointmentReminder(AppointmentMessage message);
 }

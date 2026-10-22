@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 	List<Appointment> findByClientIdAndScheduledDateAndStatusNot(Long clientId, LocalDate scheduledDate, AppointmentStatus status);
 
 	Optional<Appointment> findByIdAndClientId(Long id, Long clientId);
+
+	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
+	@Query("SELECT a FROM Appointment a WHERE a.status IN :statuses " +
+			"AND a.scheduledDate BETWEEN :startDate AND :endDate " +
+			"AND NOT EXISTS (SELECT r FROM AppointmentReminder r WHERE r.appointment = a)")
+	List<Appointment> findWithoutReminder(
+			@Param("statuses") Collection<AppointmentStatus> statuses,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
 
 	boolean existsByServiceId(Long serviceId);
 

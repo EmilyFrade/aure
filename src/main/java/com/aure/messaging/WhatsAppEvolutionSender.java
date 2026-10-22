@@ -70,7 +70,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 				: "Seu horário em *" + message.brandName() + "* está agendado. Confira os detalhes:";
 		String text = greeting(message.clientName()) + "\n"
 				+ intro + "\n\n"
-				+ details(message) + "\n\n"
+				+ details(message, describeDay(message.date())) + "\n\n"
 				+ "Para ver ou cancelar, acesse:\n"
 				+ frontendUrl + "/meus-agendamentos";
 
@@ -81,7 +81,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	public void notifyAppointmentCancelled(AppointmentMessage message) {
 		String text = greeting(message.clientName()) + "\n"
 				+ "*" + message.brandName() + "* precisou cancelar o seu horário:\n\n"
-				+ details(message) + "\n\n"
+				+ details(message, describeDay(message.date())) + "\n\n"
 				+ "Se quiser, escolha outro horário por aqui:\n"
 				+ frontendUrl + "/agendar/" + message.brandSlug() + "?profissional=" + message.professionalId();
 
@@ -92,12 +92,23 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	public void notifyWaitingListSlot(AppointmentMessage message) {
 		String text = greeting(message.clientName()) + "\n"
 				+ "Abriu uma vaga em *" + message.brandName() + "* para o serviço que você estava esperando. Confira os detalhes:\n\n"
-				+ details(message) + "\n\n"
+				+ details(message, describeDay(message.date())) + "\n\n"
 				+ "Para garantir a vaga, agende por aqui:\n"
 				+ frontendUrl + "/meus-agendamentos\n\n"
 				+ "A vaga fica com quem agendar primeiro.";
 
 		sendText(message.phone(), text);
+	}
+
+	@Override
+	public boolean sendAppointmentReminder(AppointmentMessage message) {
+		String text = greeting(message.clientName()) + "\n"
+				+ "Passando para lembrar do seu horário em *" + message.brandName() + "*:\n\n"
+				+ details(message, describeDayFromToday(message.date())) + "\n\n"
+				+ "Se não puder ir, cancele por aqui para liberar o horário:\n"
+				+ frontendUrl + "/meus-agendamentos";
+
+		return sendText(message.phone(), text);
 	}
 
 	private boolean sendText(String phone, String text) {
@@ -124,9 +135,9 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 		return false;
 	}
 
-	private static String details(AppointmentMessage message) {
+	private static String details(AppointmentMessage message, String day) {
 		return "📅 *Serviço*\n" + message.serviceName() + "\n"
-				+ "🕐 *Horário*\n" + describeDay(message.date()) + ", às " + message.time().format(TIME_FORMAT) + "\n"
+				+ "🕐 *Horário*\n" + day + ", às " + message.time().format(TIME_FORMAT) + "\n"
 				+ "📍 *Profissional*\n" + message.professionalName();
 	}
 
@@ -138,6 +149,13 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	private static String describeDay(LocalDate date) {
 		String formatted = date.format(DATE_FORMAT);
 		return Character.toUpperCase(formatted.charAt(0)) + formatted.substring(1);
+	}
+
+	private static String describeDayFromToday(LocalDate date) {
+		LocalDate today = LocalDate.now();
+		if (date.equals(today)) return "Hoje, " + date.format(DATE_FORMAT);
+		if (date.equals(today.plusDays(1))) return "Amanhã, " + date.format(DATE_FORMAT);
+		return describeDay(date);
 	}
 
 	private static String toWhatsAppNumber(String phone) {

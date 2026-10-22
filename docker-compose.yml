@@ -18,6 +18,7 @@ services:
     image: evoapicloud/evolution-api:v2.3.7
     depends_on:
       - postgres
+      - rabbitmq
     environment:
       SERVER_URL: http://localhost:8085
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-aure-evolution-local}
@@ -35,6 +36,12 @@ services:
       LOG_LEVEL: ERROR,WARN,INFO
       DEL_INSTANCE: "false"
       LANGUAGE: pt-BR
+      RABBITMQ_ENABLED: "true"
+      RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
+      RABBITMQ_GLOBAL_ENABLED: "true"
+      RABBITMQ_EXCHANGE_NAME: evolution
+      RABBITMQ_PREFIX_KEY: evolution
+      RABBITMQ_EVENTS_MESSAGES_UPSERT: "true"
     ports:
       - "8085:8080"
     volumes:

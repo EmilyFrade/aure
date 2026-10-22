@@ -112,18 +112,14 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 
 	@Override
 	public void notifyReminderConfirmed(AppointmentMessage message) {
-		String text = greeting(message.clientName()) + "\n"
-				+ "Presença confirmada! Te esperamos em *" + message.brandName() + "*:\n\n"
-				+ details(message, describeDayFromToday(message.date()));
+		String text = "Presença confirmada! ✅ Te esperamos em *" + message.brandName() + "*.";
 
 		sendText(message.phone(), text);
 	}
 
 	@Override
 	public void notifyReminderCancelled(AppointmentMessage message) {
-		String text = greeting(message.clientName()) + "\n"
-				+ "Seu horário em *" + message.brandName() + "* foi cancelado:\n\n"
-				+ details(message, describeDayFromToday(message.date())) + "\n\n"
+		String text = "Pronto, seu horário em *" + message.brandName() + "* foi cancelado.\n\n"
 				+ "Se quiser, escolha outro horário por aqui:\n"
 				+ bookingUrl(message);
 

@@ -8,7 +8,6 @@ import java.util.List;
 public record PublicProfileResponseDto(
 		@JsonProperty("brand_id") Long brandId,
 		@JsonProperty("brand_name") String brandName,
-		String description,
 		String address,
 		String city,
 		String state,

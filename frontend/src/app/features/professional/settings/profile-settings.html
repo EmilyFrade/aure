@@ -119,16 +119,6 @@
               </select>
             </app-text-field>
           </div>
-
-          <app-text-field label="Sobre o espaço" hint="Estacionamento, acessibilidade, como chegar… Até 500 caracteres.">
-            <textarea
-              class="field-input resize-none"
-              name="description"
-              rows="4"
-              maxlength="500"
-              [ngModel]="description()"
-              (ngModelChange)="description.set($event)"></textarea>
-          </app-text-field>
         </section>
       </app-card>
     </div>

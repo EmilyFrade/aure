@@ -96,7 +96,6 @@ export interface ProfessionalProfile {
   photo_url: string | null;
   brand_name: string;
   brand_slug: string;
-  description: string | null;
   address: string | null;
   city: string;
   state: string;
@@ -107,7 +106,6 @@ export interface ProfessionalProfileRequest {
   bio?: string;
   phone?: string;
   brand_name: string;
-  description?: string;
   address?: string;
   city: string;
   state: string;
@@ -189,7 +187,6 @@ export interface PublicProfessional {
 export interface PublicProfile {
   brand_id: number;
   brand_name: string;
-  description: string | null;
   address: string | null;
   city: string | null;
   state: string | null;

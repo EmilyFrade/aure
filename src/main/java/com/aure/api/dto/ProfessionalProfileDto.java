@@ -10,7 +10,6 @@ public record ProfessionalProfileDto(
 		@JsonProperty("photo_url") String photoUrl,
 		@JsonProperty("brand_name") String brandName,
 		@JsonProperty("brand_slug") String brandSlug,
-		String description,
 		String address,
 		String city,
 		String state
@@ -25,7 +24,6 @@ public record ProfessionalProfileDto(
 				professional.getPhotoUrl(),
 				brand.getName(),
 				brand.getSlug(),
-				brand.getDescription(),
 				brand.getAddress(),
 				brand.getCity(),
 				brand.getState());

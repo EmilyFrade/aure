@@ -45,7 +45,6 @@ public class ProfessionalProfileService {
 
 		var brand = professional.getBrand();
 		brand.setName(request.brandName().trim());
-		brand.setDescription(blankToNull(request.description()));
 		brand.setAddress(blankToNull(request.address()));
 		brand.setCity(request.city().trim());
 		brand.setState(request.state());

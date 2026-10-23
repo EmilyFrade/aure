@@ -39,7 +39,6 @@ export class ProfileSettings {
   protected readonly bio = signal('');
   protected readonly phone = signal('');
   protected readonly brandName = signal('');
-  protected readonly description = signal('');
   protected readonly address = signal('');
   protected readonly city = signal('');
   protected readonly state = signal('');
@@ -77,7 +76,6 @@ export class ProfileSettings {
         bio: this.bio().trim() || undefined,
         phone: digitsOnly(this.phone()) || undefined,
         brand_name: this.brandName().trim(),
-        description: this.description().trim() || undefined,
         address: this.address().trim() || undefined,
         city: this.city().trim(),
         state: this.state()
@@ -147,7 +145,6 @@ export class ProfileSettings {
     this.bio.set(profile.bio ?? '');
     this.phone.set(maskPhoneBR(profile.phone ?? ''));
     this.brandName.set(profile.brand_name);
-    this.description.set(profile.description ?? '');
     this.address.set(profile.address ?? '');
     this.city.set(profile.city ?? '');
     this.state.set(profile.state ?? '');

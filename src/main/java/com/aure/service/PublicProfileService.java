@@ -37,7 +37,7 @@ public class PublicProfileService {
 		return new PublicProfileResponseDto(
 				brand.getId(),
 				brand.getName(),
-				brand.getDescription(),
+				brand.getAddress(),
 				brand.getCity(),
 				brand.getState(),
 				professionals
@@ -55,6 +55,7 @@ public class PublicProfileService {
 				professional.getId(),
 				professional.getName(),
 				professional.getBio(),
+				professional.getPhone(),
 				professional.getPhotoUrl(),
 				services
 		);

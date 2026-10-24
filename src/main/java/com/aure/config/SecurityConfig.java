@@ -41,7 +41,7 @@ public class SecurityConfig {
 				.requestMatchers("/auth/client/me", "/auth/client/logout").hasRole("CLIENT")
 				.requestMatchers("/auth/client/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/p/**", "/search").permitAll()
-				.requestMatchers(HttpMethod.GET, "/professionals/*/availability").permitAll()
+				.requestMatchers(HttpMethod.GET, "/professionals/*/availability", "/professionals/*/photo").permitAll()
 				.anyRequest().authenticated())
 			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(clientAuthFilter, UsernamePasswordAuthenticationFilter.class);

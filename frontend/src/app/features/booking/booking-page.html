@@ -50,13 +50,31 @@
                 <p class="mt-4 text-sm leading-relaxed text-slate-600">{{ solo!.bio }}</p>
               }
 
-              @if (brand.description) {
-                <div class="mt-5 border-t border-primary-100 pt-4 text-left">
-                  <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    <app-icon name="map-pin" [size]="14" />
-                    Sobre o espaço
-                  </p>
-                  <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ brand.description }}</p>
+              @if (brand.address || whatsAppUrl()) {
+                <div class="mt-4 space-y-2 text-left">
+                  @if (brand.address) {
+                    <a
+                      [href]="mapsUrl()"
+                      target="_blank"
+                      rel="noopener"
+                      class="flex items-start gap-2.5 rounded-xl bg-primary-50/60 p-3 text-sm text-slate-600 transition hover:bg-primary-50">
+                      <span class="mt-0.5 text-primary-400"><app-icon name="map-pin" [size]="16" /></span>
+                      <span class="min-w-0 flex-1">
+                        {{ brand.address }}
+                        <span class="mt-0.5 block text-xs font-medium text-primary-600">Ver no mapa</span>
+                      </span>
+                    </a>
+                  }
+                  @if (whatsAppUrl(); as url) {
+                    <a
+                      [href]="url"
+                      target="_blank"
+                      rel="noopener"
+                      class="flex items-center justify-center gap-2 rounded-xl bg-primary-50 px-3 py-2.5 text-sm font-medium text-primary-700 transition hover:bg-primary-100">
+                      <app-icon name="message" [size]="16" />
+                      Falar no WhatsApp
+                    </a>
+                  }
                 </div>
               }
             </app-card>

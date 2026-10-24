@@ -56,7 +56,6 @@ export class ProfessionalOnboarding {
 
   readonly canSubmit = computed(
     () =>
-      !!this.brandName().trim() &&
       !!this.professionalName().trim() &&
       !!this.city().trim() &&
       !!this.state() &&
@@ -71,7 +70,7 @@ export class ProfessionalOnboarding {
     this.submitting.set(true);
     this.authService
       .signup({
-        brand_name: this.brandName().trim(),
+        brand_name: this.brandName().trim() || undefined,
         professional_name: this.professionalName().trim(),
         email: this.email().trim(),
         password: this.password(),

@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, input, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ProfessionalAuthService } from '../../core/services/professional-auth.service';
 import { ProfessionalService } from '../../core/services/professional.service';
@@ -121,17 +121,14 @@ export class AppShell {
   readonly subtitle = input('');
 
   protected readonly links = PROFESSIONAL_NAV;
-  protected readonly userName = signal('');
-  protected readonly photoUrl = signal<string | null>(null);
+  protected readonly userName = computed(() => this.professionals.identity()?.name ?? '');
+  protected readonly photoUrl = computed(() => this.professionals.identity()?.photoUrl ?? null);
   protected readonly menuOpen = signal(false);
 
   constructor() {
     const id = this.auth.professionalId;
     if (id) {
-      this.professionals.get(id).subscribe((p) => {
-        this.userName.set(p.name);
-        this.photoUrl.set(p.photo_url);
-      });
+      this.professionals.loadIdentity(id);
     }
   }
 

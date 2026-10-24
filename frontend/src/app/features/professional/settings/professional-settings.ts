@@ -1,36 +1,38 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BrandResponse } from '../../../core/models/api.models';
-import { BrandService } from '../../../core/services/brand.service';
+import { ProfessionalProfile } from '../../../core/models/api.models';
 import { ProfessionalAuthService } from '../../../core/services/professional-auth.service';
+import { ProfessionalService } from '../../../core/services/professional.service';
 import { AppShell } from '../../../shared/layout/app-shell';
 import { Icon, IconName } from '../../../shared/ui/icon';
 import { PublicLinkCard } from '../shared/public-link-card';
 import { BlocksSettings } from './blocks-settings';
+import { ProfileSettings } from './profile-settings';
 import { SchedulesSettings } from './schedules-settings';
 import { ServicesSettings } from './services-settings';
 
-type Tab = 'servicos' | 'horarios' | 'bloqueios';
+type Tab = 'servicos' | 'horarios' | 'bloqueios' | 'perfil';
 
 const TABS: readonly { id: Tab; label: string; icon: IconName }[] = [
   { id: 'servicos', label: 'Serviços', icon: 'tag' },
   { id: 'horarios', label: 'Horários', icon: 'clock' },
-  { id: 'bloqueios', label: 'Bloqueios', icon: 'lock' }
+  { id: 'bloqueios', label: 'Bloqueios', icon: 'lock' },
+  { id: 'perfil', label: 'Perfil', icon: 'user' }
 ];
 
 @Component({
   selector: 'app-professional-settings',
-  imports: [AppShell, Icon, PublicLinkCard, ServicesSettings, SchedulesSettings, BlocksSettings],
+  imports: [AppShell, Icon, PublicLinkCard, ServicesSettings, SchedulesSettings, BlocksSettings, ProfileSettings],
   template: `
-    <app-shell title="Configurações" subtitle="Serviços, horários e folgas da sua agenda.">
+    <app-shell title="Configurações" subtitle="Serviços, horários, folgas e o seu perfil.">
       <div class="mx-auto max-w-4xl">
-        @if (brand(); as b) {
+        @if (profile(); as p) {
           <div class="mb-5">
-            <app-public-link-card [slug]="b.slug" [brandName]="b.name" />
+            <app-public-link-card [slug]="p.brand_slug" [brandName]="p.brand_name === p.name ? '' : p.brand_name" />
           </div>
         }
 
-        <div class="mb-5 grid grid-cols-3 gap-1 rounded-2xl bg-primary-100/60 p-1" role="tablist">
+        <div class="mb-5 grid grid-cols-4 gap-1 rounded-2xl bg-primary-100/60 p-1" role="tablist">
           @for (t of tabs; track t.id) {
             <button
               type="button"
@@ -39,7 +41,7 @@ const TABS: readonly { id: Tab; label: string; icon: IconName }[] = [
               (click)="selectTab(t.id)"
               class="flex items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-medium transition"
               [class]="tab() === t.id ? 'bg-white text-primary-700 shadow-card' : 'text-slate-500 hover:text-primary-700'">
-              <app-icon [name]="t.icon" [size]="16" />
+              <span class="hidden sm:inline-flex"><app-icon [name]="t.icon" [size]="16" /></span>
               {{ t.label }}
             </button>
           }
@@ -55,6 +57,9 @@ const TABS: readonly { id: Tab; label: string; icon: IconName }[] = [
           @case ('bloqueios') {
             <app-blocks-settings [professionalId]="professionalId" />
           }
+          @case ('perfil') {
+            <app-profile-settings [professionalId]="professionalId" (saved)="profileSaved($event)" />
+          }
         }
       </div>
     </app-shell>
@@ -62,17 +67,21 @@ const TABS: readonly { id: Tab; label: string; icon: IconName }[] = [
 })
 export class ProfessionalSettings {
   private readonly auth = inject(ProfessionalAuthService);
-  private readonly brands = inject(BrandService);
+  private readonly professionals = inject(ProfessionalService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly professionalId = this.auth.professionalId!;
   protected readonly tabs = TABS;
   protected readonly tab = signal<Tab>(this.initialTab());
-  protected readonly brand = signal<BrandResponse | null>(null);
+  protected readonly profile = signal<ProfessionalProfile | null>(null);
 
   constructor() {
-    this.brands.forProfessional(this.professionalId).subscribe((b) => this.brand.set(b));
+    this.professionals.getProfile(this.professionalId).subscribe((p) => this.profile.set(p));
+  }
+
+  protected profileSaved(profile: ProfessionalProfile): void {
+    this.profile.set(profile);
   }
 
   protected selectTab(tab: Tab): void {

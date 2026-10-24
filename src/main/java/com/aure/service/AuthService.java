@@ -67,14 +67,17 @@ public class AuthService {
 	@Transactional
 	public AuthResponseDto signup(SignupRequestDto request) {
 		var email = request.getEmail().trim().toLowerCase();
+		var brandName = request.getBrandName() == null || request.getBrandName().isBlank()
+				? request.getProfessionalName().trim()
+				: request.getBrandName().trim();
 
 		if (userRepository.existsByEmailIgnoreCase(email)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
 		}
 
 		var brand = brandRepository.save(Brand.builder()
-				.name(request.getBrandName().trim())
-				.slug(uniqueSlug(request.getBrandName()))
+				.name(brandName)
+				.slug(uniqueSlug(brandName))
 				.city(blankToNull(request.getCity()))
 				.state(blankToNull(request.getState()))
 				.phone(blankToNull(request.getPhone()))

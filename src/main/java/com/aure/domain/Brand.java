@@ -38,6 +38,9 @@ public class Brand {
 	@Column(length = 500)
 	private String description;
 
+	@Column(length = 255)
+	private String address;
+
 	@Column(name = "logo_url", length = 500)
 	private String logoUrl;
 

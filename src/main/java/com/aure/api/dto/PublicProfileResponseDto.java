@@ -8,7 +8,7 @@ import java.util.List;
 public record PublicProfileResponseDto(
 		@JsonProperty("brand_id") Long brandId,
 		@JsonProperty("brand_name") String brandName,
-		String description,
+		String address,
 		String city,
 		String state,
 		List<PublicProfessionalDto> professionals
@@ -17,6 +17,7 @@ public record PublicProfileResponseDto(
 			Long id,
 			String name,
 			String bio,
+			String phone,
 			@JsonProperty("photo_url") String photoUrl,
 			List<PublicServiceDto> services
 	) {}

@@ -11,7 +11,7 @@ export interface LoginRequest {
 }
 
 export interface SignupRequest {
-  brand_name: string;
+  brand_name?: string;
   professional_name: string;
   email: string;
   password: string;
@@ -65,19 +65,6 @@ export interface BlockResponse {
   reason: string | null;
 }
 
-export interface BrandResponse {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  logo_url: string | null;
-  city: string | null;
-  state: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-}
-
 export interface ProfessionalResponse {
   id: number;
   brand_id: number;
@@ -87,6 +74,28 @@ export interface ProfessionalResponse {
   email: string | null;
   photo_url: string | null;
   is_active: boolean;
+}
+
+export interface ProfessionalProfile {
+  name: string;
+  bio: string | null;
+  phone: string | null;
+  photo_url: string | null;
+  brand_name: string;
+  brand_slug: string;
+  address: string | null;
+  city: string;
+  state: string;
+}
+
+export interface ProfessionalProfileRequest {
+  name: string;
+  bio?: string;
+  phone?: string;
+  brand_name?: string;
+  address?: string;
+  city: string;
+  state: string;
 }
 
 export interface SearchQuery {
@@ -157,6 +166,7 @@ export interface PublicProfessional {
   id: number;
   name: string;
   bio: string | null;
+  phone: string | null;
   photo_url: string | null;
   services: PublicService[];
 }
@@ -164,7 +174,7 @@ export interface PublicProfessional {
 export interface PublicProfile {
   brand_id: number;
   brand_name: string;
-  description: string | null;
+  address: string | null;
   city: string | null;
   state: string | null;
   professionals: PublicProfessional[];

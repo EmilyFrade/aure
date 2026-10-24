@@ -1,0 +1,132 @@
+@if (loading()) {
+  <div class="flex justify-center py-12 text-primary-500"><app-spinner /></div>
+} @else {
+  <form class="space-y-4" (ngSubmit)="save()">
+    <div class="grid gap-4 lg:grid-cols-2 lg:items-start">
+      <app-card>
+        <section class="space-y-4">
+          <h2 class="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-primary-500">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50"><app-icon name="user" [size]="15" /></span>
+            Você
+          </h2>
+
+          <div class="flex items-center gap-4">
+            <app-avatar [name]="name()" [photoUrl]="photoUrl()" [size]="72" class="ring-4 ring-primary-100" />
+            <div class="flex flex-wrap items-center gap-2">
+              <label
+                class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-primary-100 px-3 py-2 text-sm font-medium text-primary-700 transition hover:bg-primary-200"
+                [class.pointer-events-none]="uploading()"
+                [class.opacity-60]="uploading()">
+                @if (uploading()) {
+                  <app-spinner size="sm" />
+                } @else {
+                  <app-icon name="edit" [size]="16" />
+                }
+                {{ photoUrl() ? 'Trocar foto' : 'Adicionar foto' }}
+                <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp" (change)="choosePhoto($event)" />
+              </label>
+              @if (photoUrl()) {
+                <app-button variant="ghost" size="sm" [disabled]="uploading()" (click)="removePhoto()">Remover</app-button>
+              }
+            </div>
+          </div>
+
+          <app-text-field label="Seu nome" [required]="true">
+            <input
+              class="field-input"
+              name="name"
+              [ngModel]="name()"
+              (ngModelChange)="name.set($event)"
+              maxlength="255"
+              autocomplete="name" />
+          </app-text-field>
+
+          <app-text-field label="Sobre você" hint="Aparece na sua página de agendamento. Até 500 caracteres.">
+            <textarea
+              class="field-input resize-none"
+              name="bio"
+              rows="3"
+              maxlength="500"
+              [ngModel]="bio()"
+              (ngModelChange)="bio.set($event)"
+              placeholder="Ex.: Cabeleireira há 8 anos, especialista em cortes e coloração."></textarea>
+          </app-text-field>
+
+          <app-text-field
+            label="WhatsApp"
+            hint="Clientes podem falar com você pela sua página."
+            [error]="phoneError()">
+            <input
+              class="field-input"
+              name="phone"
+              [ngModel]="phone()"
+              (ngModelChange)="phone.set(maskPhone($event))"
+              inputmode="tel"
+              maxlength="15"
+              placeholder="(00) 00000-0000"
+              autocomplete="tel" />
+          </app-text-field>
+        </section>
+      </app-card>
+
+      <app-card>
+        <section class="space-y-4">
+          <h2 class="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-primary-500">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50"><app-icon name="sparkles" [size]="15" /></span>
+            Seu negócio
+          </h2>
+
+          <app-text-field label="Nome do negócio" hint="Opcional. Se você atende com o próprio nome, deixe em branco.">
+            <input
+              class="field-input"
+              name="brandName"
+              [ngModel]="brandName()"
+              (ngModelChange)="brandName.set($event)"
+              maxlength="255"
+              autocomplete="organization" />
+          </app-text-field>
+
+          <app-text-field label="Endereço" hint="Rua, número e bairro. Aparece na sua página com link para o mapa.">
+            <input
+              class="field-input"
+              name="address"
+              [ngModel]="address()"
+              (ngModelChange)="address.set($event)"
+              maxlength="255"
+              placeholder="Ex.: Rua Sete de Setembro, 120 - Carneirinhos"
+              autocomplete="street-address" />
+          </app-text-field>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="col-span-2">
+              <app-text-field label="Cidade" [required]="true">
+                <input
+                  class="field-input"
+                  name="city"
+                  [ngModel]="city()"
+                  (ngModelChange)="city.set($event)"
+                  maxlength="100"
+                  placeholder="Ex.: João Monlevade"
+                  autocomplete="address-level2" />
+              </app-text-field>
+            </div>
+            <app-text-field label="UF" [required]="true">
+              <select class="field-input" name="state" [ngModel]="state()" (ngModelChange)="state.set($event)">
+                <option value="">--</option>
+                @for (uf of ufs; track uf) {
+                  <option [value]="uf">{{ uf }}</option>
+                }
+              </select>
+            </app-text-field>
+          </div>
+        </section>
+      </app-card>
+    </div>
+
+    <div class="flex justify-end">
+      <div class="w-full sm:w-auto">
+        <app-button type="submit" [full]="true" [loading]="saving()" [disabled]="!canSave()">Salvar perfil</app-button>
+      </div>
+    </div>
+  </form>
+}

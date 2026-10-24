@@ -135,6 +135,18 @@ export class BookingPage {
     () => this.focused() ?? (this.bookable().length === 1 ? this.bookable()[0] : null)
   );
 
+  protected readonly mapsUrl = computed(() => {
+    const brand = this.profile();
+    if (!brand?.address) return null;
+    const query = [brand.address, brand.city, brand.state].filter(Boolean).join(', ');
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  });
+
+  protected readonly whatsAppUrl = computed(() => {
+    const phone = digitsOnly(this.soloProfessional()?.phone ?? '');
+    return phone.length >= 10 ? `https://wa.me/55${phone}` : null;
+  });
+
   protected readonly serviceCount = computed(() =>
     this.visible().reduce((total, p) => total + p.services.length, 0)
   );

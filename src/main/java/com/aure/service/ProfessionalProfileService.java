@@ -44,7 +44,7 @@ public class ProfessionalProfileService {
 		professional.setPhone(blankToNull(request.phone()));
 
 		var brand = professional.getBrand();
-		brand.setName(request.brandName().trim());
+		brand.setName(request.brandName() == null || request.brandName().isBlank() ? professional.getName() : request.brandName().trim());
 		brand.setAddress(blankToNull(request.address()));
 		brand.setCity(request.city().trim());
 		brand.setState(request.state());

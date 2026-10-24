@@ -17,7 +17,6 @@ import lombok.Setter;
 public class SignupRequestDto {
 
 	@JsonProperty("brand_name")
-	@NotBlank(message = "Nome do negócio é obrigatório")
 	@Size(max = 255)
 	private String brandName;
 

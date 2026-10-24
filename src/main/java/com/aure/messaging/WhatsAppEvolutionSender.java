@@ -66,8 +66,8 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	@Override
 	public void notifyAppointmentCreated(AppointmentMessage message, boolean byProfessional) {
 		String intro = byProfessional
-				? "Um horário foi agendado para você em *" + message.brandName() + "*. Confira os detalhes:"
-				: "Seu horário em *" + message.brandName() + "* está agendado. Confira os detalhes:";
+				? "Um horário foi agendado para você " + place(message) + ". Confira os detalhes:"
+				: "Seu horário " + place(message) + " está agendado. Confira os detalhes:";
 		String text = greeting(message.clientName()) + "\n"
 				+ intro + "\n\n"
 				+ details(message, describeDay(message.date())) + "\n\n"
@@ -91,7 +91,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	@Override
 	public void notifyWaitingListSlot(AppointmentMessage message) {
 		String text = greeting(message.clientName()) + "\n"
-				+ "Abriu uma vaga em *" + message.brandName() + "* para o serviço que você estava esperando. Confira os detalhes:\n\n"
+				+ "Abriu uma vaga " + place(message) + " para o serviço que você estava esperando. Confira os detalhes:\n\n"
 				+ details(message, describeDay(message.date())) + "\n\n"
 				+ "Para garantir a vaga, agende por aqui:\n"
 				+ frontendUrl + "/meus-agendamentos\n\n"
@@ -103,7 +103,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	@Override
 	public boolean sendAppointmentReminder(AppointmentMessage message) {
 		String text = greeting(message.clientName()) + "\n"
-				+ "Passando para lembrar do seu horário em *" + message.brandName() + "*:\n\n"
+				+ "Passando para lembrar do seu horário " + place(message) + ":\n\n"
 				+ details(message, describeDayFromToday(message.date())) + "\n\n"
 				+ "Responda *1* para confirmar ou *2* para cancelar.";
 
@@ -112,14 +112,16 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 
 	@Override
 	public void notifyReminderConfirmed(AppointmentMessage message) {
-		String text = "Presença confirmada! ✅ Te esperamos em *" + message.brandName() + "*.";
+		String text = hasOwnBrand(message)
+				? "Presença confirmada! ✅ Te esperamos em *" + message.brandName() + "*."
+				: "Presença confirmada! ✅ *" + message.professionalName() + "* te espera.";
 
 		sendText(message.phone(), text);
 	}
 
 	@Override
 	public void notifyReminderCancelled(AppointmentMessage message) {
-		String text = "Pronto, seu horário em *" + message.brandName() + "* foi cancelado.\n\n"
+		String text = "Pronto, seu horário " + place(message) + " foi cancelado.\n\n"
 				+ "Se quiser, escolha outro horário por aqui:\n"
 				+ bookingUrl(message);
 
@@ -152,6 +154,14 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 
 	private String bookingUrl(AppointmentMessage message) {
 		return frontendUrl + "/agendar/" + message.brandSlug() + "?profissional=" + message.professionalId();
+	}
+
+	private static String place(AppointmentMessage message) {
+		return hasOwnBrand(message) ? "em *" + message.brandName() + "*" : "com *" + message.professionalName() + "*";
+	}
+
+	private static boolean hasOwnBrand(AppointmentMessage message) {
+		return !message.brandName().equalsIgnoreCase(message.professionalName());
 	}
 
 	private static String details(AppointmentMessage message, String day) {

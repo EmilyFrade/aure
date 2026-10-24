@@ -55,8 +55,10 @@
                   <div class="flex items-center gap-3 px-4 pt-4">
                     <app-avatar [name]="appointment.professional_name" [photoUrl]="appointment.professional_photo_url" [size]="44" />
                     <div class="min-w-0 flex-1">
-                      <p class="truncate font-display font-semibold text-slate-900">{{ appointment.brand_name }}</p>
-                      <p class="truncate text-sm text-slate-500">com {{ appointment.professional_name }}</p>
+                      <p class="truncate font-display font-semibold text-slate-900">{{ appointment.professional_name }}</p>
+                      @if (appointment.brand_name !== appointment.professional_name) {
+                        <p class="truncate text-sm text-slate-500">{{ appointment.brand_name }}</p>
+                      }
                     </div>
                     <app-badge [variant]="status[appointment.status].badge">{{ status[appointment.status].label }}</app-badge>
                   </div>
@@ -134,8 +136,10 @@
                     <div class="flex items-center gap-3 px-4 pt-4">
                       <app-avatar [name]="entry.professional_name" [photoUrl]="entry.professional_photo_url" [size]="44" />
                       <div class="min-w-0 flex-1">
-                        <p class="truncate font-display font-semibold text-slate-900">{{ entry.brand_name }}</p>
-                        <p class="truncate text-sm text-slate-500">com {{ entry.professional_name }}</p>
+                        <p class="truncate font-display font-semibold text-slate-900">{{ entry.professional_name }}</p>
+                        @if (entry.brand_name !== entry.professional_name) {
+                          <p class="truncate text-sm text-slate-500">{{ entry.brand_name }}</p>
+                        }
                       </div>
                       @if (entry.status === 'NOTIFIED') {
                         <app-badge variant="success">Vaga aberta</app-badge>

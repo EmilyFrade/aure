@@ -11,7 +11,7 @@ export interface LoginRequest {
 }
 
 export interface SignupRequest {
-  brand_name: string;
+  brand_name?: string;
   professional_name: string;
   email: string;
   password: string;
@@ -65,19 +65,6 @@ export interface BlockResponse {
   reason: string | null;
 }
 
-export interface BrandResponse {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  logo_url: string | null;
-  city: string | null;
-  state: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-}
-
 export interface ProfessionalResponse {
   id: number;
   brand_id: number;
@@ -105,7 +92,7 @@ export interface ProfessionalProfileRequest {
   name: string;
   bio?: string;
   phone?: string;
-  brand_name: string;
+  brand_name?: string;
   address?: string;
   city: string;
   state: string;

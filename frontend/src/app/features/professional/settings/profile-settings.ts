@@ -51,7 +51,6 @@ export class ProfileSettings {
   protected readonly canSave = computed(
     () =>
       !!this.name().trim() &&
-      !!this.brandName().trim() &&
       !!this.city().trim() &&
       !!this.state() &&
       !this.phoneError()
@@ -75,7 +74,7 @@ export class ProfileSettings {
         name: this.name().trim(),
         bio: this.bio().trim() || undefined,
         phone: digitsOnly(this.phone()) || undefined,
-        brand_name: this.brandName().trim(),
+        brand_name: this.brandName().trim() || undefined,
         address: this.address().trim() || undefined,
         city: this.city().trim(),
         state: this.state()
@@ -144,7 +143,7 @@ export class ProfileSettings {
     this.name.set(profile.name);
     this.bio.set(profile.bio ?? '');
     this.phone.set(maskPhoneBR(profile.phone ?? ''));
-    this.brandName.set(profile.brand_name);
+    this.brandName.set(profile.brand_name === profile.name ? '' : profile.brand_name);
     this.address.set(profile.address ?? '');
     this.city.set(profile.city ?? '');
     this.state.set(profile.state ?? '');

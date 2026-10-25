@@ -6,12 +6,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record PublicProfileResponseDto(
-		@JsonProperty("brand_id") Long brandId,
 		@JsonProperty("brand_name") String brandName,
 		String address,
 		String city,
 		String state,
-		List<PublicProfessionalDto> professionals
+		PublicProfessionalDto professional
 ) {
 	public record PublicProfessionalDto(
 			Long id,

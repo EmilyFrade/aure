@@ -35,29 +35,14 @@ public class Brand {
 	@Column(nullable = false, unique = true, length = 100)
 	private String slug;
 
-	@Column(length = 500)
-	private String description;
-
 	@Column(length = 255)
 	private String address;
-
-	@Column(name = "logo_url", length = 500)
-	private String logoUrl;
 
 	@Column(nullable = false, length = 100)
 	private String city;
 
 	@Column(nullable = false, length = 2)
 	private String state;
-
-	@Column(length = 20)
-	private String phone;
-
-	@Column(length = 255)
-	private String email;
-
-	@Column(length = 500)
-	private String website;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;

@@ -11,6 +11,5 @@ public interface ProfessionalUserRepository extends JpaRepository<ProfessionalUs
 
 	boolean existsByEmailIgnoreCase(String email);
 
-	boolean existsByProfessionalId(Long professionalId);
 
 }

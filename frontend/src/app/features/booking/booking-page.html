@@ -458,7 +458,10 @@
                   <h2 class="mt-3 font-display text-lg font-semibold text-slate-900">Confirme pelo WhatsApp</h2>
                   <p class="mt-1 text-sm text-slate-500">Enviaremos um código de 6 dígitos para o seu número.</p>
                   <form class="mt-4 text-left" (ngSubmit)="requestCode()">
-                    <app-text-field label="Telefone (WhatsApp)" [required]="true">
+                    <app-text-field
+                      label="Telefone (WhatsApp)"
+                      [required]="true"
+                      hint="Usamos seu WhatsApp só para enviar o código e os avisos dos seus agendamentos.">
                       <input
                         class="field-input"
                         name="phone"

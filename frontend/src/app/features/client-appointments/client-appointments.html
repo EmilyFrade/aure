@@ -9,9 +9,13 @@
         <div class="mb-5 flex items-center justify-between gap-3">
           <div class="min-w-0">
             <h1 class="font-display text-xl font-bold text-slate-900 sm:text-2xl">Meus agendamentos</h1>
-            <p class="mt-0.5 truncate text-sm text-slate-500">
-              {{ firstName() ? 'Olá, ' + firstName() + '!' : 'Seus horários marcados pela Aure.' }}
-            </p>
+            <button
+              type="button"
+              class="group mt-0.5 inline-flex max-w-full items-center gap-1.5 text-sm text-slate-500 transition hover:text-primary-600"
+              (click)="openNameEditor()">
+              <span class="truncate">{{ firstName() ? 'Olá, ' + firstName() + '!' : 'Adicionar seu nome' }}</span>
+              <app-icon name="edit" [size]="14" class="shrink-0 text-slate-400 group-hover:text-primary-500" />
+            </button>
           </div>
           <button
             type="button"
@@ -242,7 +246,9 @@
             </div>
           } @else {
             <form class="space-y-4" (ngSubmit)="requestCode()">
-              <app-text-field label="Telefone (WhatsApp)">
+              <app-text-field
+                label="Telefone (WhatsApp)"
+                hint="Usamos seu WhatsApp só para enviar o código e os avisos dos seus agendamentos.">
                 <input
                   class="field-input"
                   name="phone"
@@ -262,6 +268,25 @@
       </div>
     }
   }
+
+  <app-sheet title="Seu nome" [open]="editingName()" (openChange)="editingName.set($event)">
+    <form (ngSubmit)="saveName()">
+      <app-text-field label="Nome" [required]="true" hint="É assim que os profissionais veem você nos agendamentos.">
+        <input
+          class="field-input"
+          name="clientName"
+          [ngModel]="nameInput()"
+          (ngModelChange)="nameInput.set($event)"
+          maxlength="120"
+          placeholder="Nome e sobrenome"
+          autocomplete="name" />
+      </app-text-field>
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <app-button variant="outline" (click)="editingName.set(false)">Voltar</app-button>
+        <app-button type="submit" [loading]="savingName()" [disabled]="!canSaveName()">Salvar</app-button>
+      </div>
+    </form>
+  </app-sheet>
 
   <app-sheet title="Cancelar agendamento?" [open]="!!cancelTarget()" (openChange)="setCancelOpen($event)">
     @if (cancelTarget(); as target) {

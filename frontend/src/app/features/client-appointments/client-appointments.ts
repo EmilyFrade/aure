@@ -86,6 +86,10 @@ export class ClientAppointments {
   protected readonly leaveTarget = signal<WaitingListEntry | null>(null);
   protected readonly leaving = signal(false);
 
+  protected readonly editingName = signal(false);
+  protected readonly nameInput = signal('');
+  protected readonly savingName = signal(false);
+
   protected readonly status = STATUS;
   protected readonly formatPrice = formatPrice;
   protected readonly formatWaitPeriod = formatWaitPeriod;
@@ -93,6 +97,10 @@ export class ClientAppointments {
 
   protected readonly canRequestCode = computed(() => digitsOnly(this.phone()).length >= 10);
   protected readonly firstName = computed(() => this.clientName()?.trim().split(' ')[0] ?? '');
+  protected readonly canSaveName = computed(() => {
+    const name = this.nameInput().trim();
+    return name.length > 0 && name !== (this.clientName() ?? '').trim();
+  });
 
   protected readonly upcoming = computed(() =>
     this.appointments()
@@ -184,6 +192,34 @@ export class ClientAppointments {
     this.clientAuth.logout().subscribe({
       complete: () => this.reset(),
       error: () => this.reset()
+    });
+  }
+
+  protected openNameEditor(): void {
+    this.nameInput.set(this.clientName() ?? '');
+    this.editingName.set(true);
+  }
+
+  protected saveName(): void {
+    if (!this.canSaveName() || this.savingName()) return;
+
+    this.savingName.set(true);
+    this.clientAuth.updateName(this.nameInput().trim()).subscribe({
+      next: (client) => {
+        this.savingName.set(false);
+        this.clientName.set(client.name);
+        this.editingName.set(false);
+        this.toast.success('Nome atualizado.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.savingName.set(false);
+        if (err.status === 401) {
+          this.editingName.set(false);
+          this.reset();
+        } else if (err.status > 0 && err.status < 500) {
+          this.toast.error(apiErrorMessage(err, 'Não foi possível salvar o nome.'));
+        }
+      }
     });
   }
 

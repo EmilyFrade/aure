@@ -6,13 +6,16 @@ spring:
     port: 5672
     username: guest
     password: guest
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 1
   datasource:
     url: jdbc:postgresql://localhost:5432/aure
     username: aure
     password: aure
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true

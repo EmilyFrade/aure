@@ -1,11 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, switchMap } from 'rxjs';
 import {
   AppointmentResponse,
-  PublicProfessional,
   PublicProfile,
   DayPeriod,
   PublicService,
@@ -73,7 +72,6 @@ interface SlotGroup {
 })
 export class BookingPage {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly publicProfileService = inject(PublicProfileService);
   private readonly availabilityService = inject(AvailabilityService);
   private readonly clientAuthService = inject(ClientAuthService);
@@ -88,7 +86,6 @@ export class BookingPage {
 
   protected readonly step = signal<Step>('loading');
   protected readonly profile = signal<PublicProfile | null>(null);
-  protected readonly selectedProfessional = signal<PublicProfessional | null>(null);
   protected readonly selectedService = signal<PublicService | null>(null);
 
   protected readonly selectedDate = signal(this.today);
@@ -121,20 +118,6 @@ export class BookingPage {
   protected readonly maskPhone = maskPhoneBR;
   protected readonly formatWaitPeriod = formatWaitPeriod;
 
-  protected readonly bookable = computed(() =>
-    (this.profile()?.professionals ?? []).filter((p) => p.services.length > 0)
-  );
-
-  private readonly focusId = signal(Number(this.route.snapshot.queryParamMap.get('profissional')) || null);
-
-  protected readonly focused = computed(() => this.bookable().find((p) => p.id === this.focusId()) ?? null);
-
-  protected readonly visible = computed(() => (this.focused() ? [this.focused()!] : this.bookable()));
-
-  protected readonly soloProfessional = computed(
-    () => this.focused() ?? (this.bookable().length === 1 ? this.bookable()[0] : null)
-  );
-
   protected readonly mapsUrl = computed(() => {
     const brand = this.profile();
     if (!brand?.address) return null;
@@ -143,13 +126,9 @@ export class BookingPage {
   });
 
   protected readonly whatsAppUrl = computed(() => {
-    const phone = digitsOnly(this.soloProfessional()?.phone ?? '');
+    const phone = digitsOnly(this.profile()?.professional.phone ?? '');
     return phone.length >= 10 ? `https://wa.me/55${phone}` : null;
   });
-
-  protected readonly serviceCount = computed(() =>
-    this.visible().reduce((total, p) => total + p.services.length, 0)
-  );
 
   protected readonly slotGroups = computed<SlotGroup[]>(() => {
     const groups: SlotGroup[] = [
@@ -219,17 +198,11 @@ export class BookingPage {
     });
   }
 
-  protected chooseService(professional: PublicProfessional, service: PublicService): void {
-    this.selectedProfessional.set(professional);
+  protected chooseService(service: PublicService): void {
     this.selectedService.set(service);
     this.selectedSlot.set(null);
     this.goTo('schedule');
     this.loadAvailability();
-  }
-
-  protected showAll(): void {
-    this.focusId.set(null);
-    this.router.navigate([], { relativeTo: this.route, queryParams: { profissional: null }, replaceUrl: true });
   }
 
   protected pickDate(iso: string): void {
@@ -338,12 +311,12 @@ export class BookingPage {
   }
 
   protected confirm(): void {
-    const professional = this.selectedProfessional();
+    const professional = this.profile()?.professional;
     const service = this.selectedService();
     if (!professional || !service || !this.canConfirm() || this.submitting()) return;
 
     if (this.mode() === 'waitlist') {
-      this.submitWaitlist(professional, service);
+      this.submitWaitlist(professional.id, service);
       return;
     }
 
@@ -371,11 +344,11 @@ export class BookingPage {
     });
   }
 
-  private submitWaitlist(professional: PublicProfessional, service: PublicService): void {
+  private submitWaitlist(professionalId: number, service: PublicService): void {
     this.submitting.set(true);
     this.withName(() =>
       this.waitingListService.join({
-        professional_id: professional.id,
+        professional_id: professionalId,
         service_id: service.id,
         preferred_date_start: this.selectedDate(),
         preferred_date_end: this.waitlistEnd(),
@@ -445,7 +418,7 @@ export class BookingPage {
   }
 
   private loadAvailability(): void {
-    const professional = this.selectedProfessional();
+    const professional = this.profile()?.professional;
     const service = this.selectedService();
     if (!professional || !service) return;
 

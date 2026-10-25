@@ -65,17 +65,6 @@ export interface BlockResponse {
   reason: string | null;
 }
 
-export interface ProfessionalResponse {
-  id: number;
-  brand_id: number;
-  name: string;
-  bio: string | null;
-  phone: string | null;
-  email: string | null;
-  photo_url: string | null;
-  is_active: boolean;
-}
-
 export interface ProfessionalProfile {
   name: string;
   bio: string | null;
@@ -172,12 +161,11 @@ export interface PublicProfessional {
 }
 
 export interface PublicProfile {
-  brand_id: number;
   brand_name: string;
   address: string | null;
   city: string | null;
   state: string | null;
-  professionals: PublicProfessional[];
+  professional: PublicProfessional;
 }
 
 export interface AvailabilityResponse {
@@ -263,8 +251,4 @@ export interface ManualAppointmentRequest {
   client_phone: string;
   client_name?: string;
   notes?: string;
-}
-
-export interface AppointmentStatusUpdate {
-  status: AppointmentStatus;
 }

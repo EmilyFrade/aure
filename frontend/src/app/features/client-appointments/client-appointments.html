@@ -89,7 +89,6 @@
                   <div class="flex items-center gap-2 px-4 py-3">
                     <a
                       [routerLink]="['/agendar', appointment.brand_slug]"
-                      [queryParams]="{ profissional: appointment.professional_id }"
                       class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
                       Agendar de novo
                       <app-icon name="arrow-right" [size]="16" />
@@ -182,7 +181,6 @@
                       @if (entry.status === 'NOTIFIED') {
                         <a
                           [routerLink]="['/agendar', entry.brand_slug]"
-                          [queryParams]="{ profissional: entry.professional_id }"
                           class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 transition hover:bg-primary-50">
                           Agendar agora
                           <app-icon name="arrow-right" [size]="16" />

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { ProfessionalProfile, ProfessionalProfileRequest, ProfessionalResponse } from '../models/api.models';
+import { ProfessionalProfile, ProfessionalProfileRequest } from '../models/api.models';
 
 export interface ProfessionalIdentity {
   name: string;
@@ -16,12 +16,8 @@ export class ProfessionalService {
 
   readonly identity = this.identityState.asReadonly();
 
-  get(professionalId: number): Observable<ProfessionalResponse> {
-    return this.http.get<ProfessionalResponse>(`${API_BASE_URL}/professionals/${professionalId}`);
-  }
-
   loadIdentity(professionalId: number): void {
-    this.get(professionalId).subscribe((p) => this.identityState.set({ name: p.name, photoUrl: p.photo_url }));
+    this.getProfile(professionalId).subscribe((profile) => this.updateIdentity(profile));
   }
 
   getProfile(professionalId: number): Observable<ProfessionalProfile> {

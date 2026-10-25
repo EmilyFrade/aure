@@ -40,8 +40,6 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Long> 
 
 	Optional<WaitingList> findByIdAndProfessionalId(Long id, Long professionalId);
 
-	int countByProfessionalIdAndStatus(Long professionalId, WaitingListStatus status);
-
 	int countByProfessionalIdAndStatusAndIdLessThan(Long professionalId, WaitingListStatus status, Long id);
 
 	@Query("SELECT COUNT(w) > 0 FROM WaitingList w WHERE w.client.id = :clientId AND w.professional.id = :professionalId " +

@@ -30,11 +30,6 @@ public class ServiceController {
 		return serviceCatalogService.findAll(professionalId);
 	}
 
-	@GetMapping("/{serviceId}")
-	public ServiceResponseDto findById(@PathVariable Long professionalId, @PathVariable Long serviceId) {
-		return serviceCatalogService.findById(professionalId, serviceId);
-	}
-
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ServiceResponseDto create(@PathVariable Long professionalId, @Valid @RequestBody ServiceRequestDto request) {

@@ -27,7 +27,7 @@ public class AuthFilter extends OncePerRequestFilter {
 	@Override
 	protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 		String path = request.getRequestURI();
-		return path.startsWith("/auth/register") || path.startsWith("/auth/login");
+		return path.startsWith("/auth/login");
 	}
 
 	@Override

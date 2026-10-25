@@ -28,19 +28,15 @@ public class PublicProfileService {
 		var brand = brandRepository.findBySlug(slug)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil não encontrado"));
 
-		List<PublicProfessionalDto> professionals = professionalRepository
-				.findByBrandIdAndActiveTrue(brand.getId())
-				.stream()
-				.map(this::toPublicProfessionalDto)
-				.toList();
+		var professional = professionalRepository.findFirstByBrandIdAndActiveTrueOrderByIdAsc(brand.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil não encontrado"));
 
 		return new PublicProfileResponseDto(
-				brand.getId(),
 				brand.getName(),
 				brand.getAddress(),
 				brand.getCity(),
 				brand.getState(),
-				professionals
+				toPublicProfessionalDto(professional)
 		);
 	}
 

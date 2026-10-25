@@ -30,7 +30,7 @@ export function apiErrorMessage(err: HttpErrorResponse, fallback: string): strin
 
 const dayMonth = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' });
 
-export function formatDateRange(start: string, end: string): string {
+function formatDateRange(start: string, end: string): string {
   const format = (iso: string) => dayMonth.format(new Date(`${iso}T12:00:00`)).replace('.', '');
   return start === end ? `Só em ${format(start)}` : `De ${format(start)} a ${format(end)}`;
 }

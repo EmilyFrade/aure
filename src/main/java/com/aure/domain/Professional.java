@@ -45,9 +45,6 @@ public class Professional {
 	@Column(length = 20)
 	private String phone;
 
-	@Column(length = 255)
-	private String email;
-
 	@Column(name = "photo_url", length = 500)
 	private String photoUrl;
 

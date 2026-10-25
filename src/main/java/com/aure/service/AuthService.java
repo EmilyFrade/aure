@@ -2,7 +2,6 @@ package com.aure.service;
 
 import com.aure.api.dto.AuthResponseDto;
 import com.aure.api.dto.LoginRequestDto;
-import com.aure.api.dto.RegisterRequestDto;
 import com.aure.api.dto.SignupRequestDto;
 import com.aure.domain.Brand;
 import com.aure.domain.Professional;
@@ -39,32 +38,6 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
-	public AuthResponseDto register(RegisterRequestDto request) {
-		var professional = professionalRepository.findById(request.getProfessionalId())
-				.orElseThrow(() -> new ResponseStatusException(
-						HttpStatus.NOT_FOUND,
-						"Profissional não encontrado com id %d".formatted(request.getProfessionalId())));
-
-		if (userRepository.existsByProfessionalId(professional.getId())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Profissional já possui conta de acesso");
-		}
-
-		if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
-		}
-
-		var user = ProfessionalUser.builder()
-				.professional(professional)
-				.email(request.getEmail().trim().toLowerCase())
-				.passwordHash(passwordEncoder.encode(request.getPassword()))
-				.active(true)
-				.build();
-
-		user = userRepository.save(user);
-		return new AuthResponseDto(createSession(user).getToken(), user.getProfessional().getId());
-	}
-
-	@Transactional
 	public AuthResponseDto signup(SignupRequestDto request) {
 		var email = request.getEmail().trim().toLowerCase();
 		var brandName = request.getBrandName() == null || request.getBrandName().isBlank()
@@ -80,14 +53,12 @@ public class AuthService {
 				.slug(uniqueSlug(brandName))
 				.city(blankToNull(request.getCity()))
 				.state(blankToNull(request.getState()))
-				.phone(blankToNull(request.getPhone()))
 				.build());
 
 		var professional = professionalRepository.save(Professional.builder()
 				.brand(brand)
 				.name(request.getProfessionalName().trim())
 				.phone(blankToNull(request.getPhone()))
-				.email(email)
 				.active(true)
 				.build());
 

@@ -37,7 +37,8 @@ public class SecurityConfig {
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/signup").permitAll()
+				.requestMatchers("/error").permitAll()
+				.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/signup").permitAll()
 				.requestMatchers("/auth/client/me", "/auth/client/logout").hasRole("CLIENT")
 				.requestMatchers("/auth/client/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/p/**", "/search").permitAll()

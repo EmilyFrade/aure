@@ -8,11 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface ProfessionalRepository extends JpaRepository<Professional, Long> {
 
-	List<Professional> findByBrandIdAndActiveTrue(Long brandId);
+	Optional<Professional> findFirstByBrandIdAndActiveTrueOrderByIdAsc(Long brandId);
 
 	default Page<Professional> search(String city, String state, String service, Pageable pageable) {
 		return search(city, state, service, SearchText.ACCENTED, SearchText.PLAIN, pageable);

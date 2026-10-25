@@ -107,8 +107,6 @@ public class WaitingListService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, duplicateMessage);
 		}
 
-		int position = waitingListRepository.countByProfessionalIdAndStatus(professional.getId(), WaitingListStatus.WAITING) + 1;
-
 		WaitingList entry = waitingListRepository.save(WaitingList.builder()
 				.professional(professional)
 				.client(client)
@@ -116,7 +114,6 @@ public class WaitingListService {
 				.preferredDateStart(start)
 				.preferredDateEnd(end)
 				.preferredPeriod(period)
-				.position(position)
 				.status(WaitingListStatus.WAITING)
 				.build());
 

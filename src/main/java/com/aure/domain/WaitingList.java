@@ -58,9 +58,6 @@ public class WaitingList {
 	@Column(name = "preferred_period", length = 20)
 	private DayPeriod preferredPeriod;
 
-	@Column(nullable = false)
-	private int position;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private WaitingListStatus status;

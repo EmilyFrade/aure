@@ -30,11 +30,6 @@ public class ServiceCatalogService {
 		return serviceRepository.findByProfessionalId(professionalId).stream().map(ServiceResponseDto::from).toList();
 	}
 
-	@Transactional(readOnly = true)
-	public ServiceResponseDto findById(Long professionalId, Long serviceId) {
-		return ServiceResponseDto.from(getService(professionalId, serviceId));
-	}
-
 	@Transactional
 	public ServiceResponseDto create(Long professionalId, ServiceRequestDto request) {
 		professionalService.requireOwnership(professionalId);

@@ -35,9 +35,6 @@ public class Client {
 	@Column(length = 255)
 	private String name;
 
-	@Column(length = 255)
-	private String email;
-
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 

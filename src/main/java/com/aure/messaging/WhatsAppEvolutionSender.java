@@ -153,7 +153,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	}
 
 	private String bookingUrl(AppointmentMessage message) {
-		return frontendUrl + "/agendar/" + message.brandSlug() + "?profissional=" + message.professionalId();
+		return frontendUrl + "/agendar/" + message.brandSlug();
 	}
 
 	private static String place(AppointmentMessage message) {

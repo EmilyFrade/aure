@@ -41,7 +41,7 @@ public class AppointmentReminder {
 	@Column(nullable = false, length = 20)
 	private ReminderStatus status;
 
-	@Column(name = "sent_at", nullable = false, updatable = false)
+	@Column(name = "sent_at", nullable = false)
 	private Instant sentAt;
 
 	@Enumerated(EnumType.STRING)

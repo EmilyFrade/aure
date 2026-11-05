@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -33,7 +34,7 @@ public class AppointmentReminderService {
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime limit = now.plusHours(HOURS_BEFORE);
 
-		List<Appointment> appointments = appointmentRepository.findWithoutReminder(
+		List<Appointment> appointments = appointmentRepository.findWithoutSentReminder(
 				ACTIVE_STATUSES, now.toLocalDate(), limit.toLocalDate());
 
 		for (Appointment appointment : appointments) {
@@ -41,10 +42,11 @@ public class AppointmentReminderService {
 			if (!start.isAfter(now) || start.isAfter(limit) || bookedWithinLeadTime(appointment, start)) continue;
 
 			boolean sent = whatsAppMessageSender.sendAppointmentReminder(AppointmentMessage.of(appointment));
-			appointmentReminderRepository.save(AppointmentReminder.builder()
-					.appointment(appointment)
-					.status(sent ? ReminderStatus.SENT : ReminderStatus.FAILED)
-					.build());
+			AppointmentReminder reminder = appointmentReminderRepository.findByAppointmentId(appointment.getId())
+					.orElseGet(() -> AppointmentReminder.builder().appointment(appointment).build());
+			reminder.setStatus(sent ? ReminderStatus.SENT : ReminderStatus.FAILED);
+			reminder.setSentAt(Instant.now());
+			appointmentReminderRepository.save(reminder);
 		}
 	}
 

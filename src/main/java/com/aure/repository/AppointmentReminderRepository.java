@@ -9,8 +9,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentReminderRepository extends JpaRepository<AppointmentReminder, Long> {
+
+	Optional<AppointmentReminder> findByAppointmentId(Long appointmentId);
 
 	@Query("SELECT r FROM AppointmentReminder r JOIN FETCH r.appointment a JOIN FETCH a.client " +
 			"JOIN FETCH a.professional p JOIN FETCH p.brand JOIN FETCH a.service " +

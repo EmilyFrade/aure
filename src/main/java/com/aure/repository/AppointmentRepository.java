@@ -30,8 +30,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 	@EntityGraph(attributePaths = {"professional", "professional.brand", "client", "service"})
 	@Query("SELECT a FROM Appointment a WHERE a.status IN :statuses " +
 			"AND a.scheduledDate BETWEEN :startDate AND :endDate " +
-			"AND NOT EXISTS (SELECT r FROM AppointmentReminder r WHERE r.appointment = a)")
-	List<Appointment> findWithoutReminder(
+			"AND NOT EXISTS (SELECT r FROM AppointmentReminder r WHERE r.appointment = a AND r.status = com.aure.domain.ReminderStatus.SENT)")
+	List<Appointment> findWithoutSentReminder(
 			@Param("statuses") Collection<AppointmentStatus> statuses,
 			@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate);

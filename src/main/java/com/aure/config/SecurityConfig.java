@@ -3,6 +3,7 @@ package com.aure.config;
 import com.aure.security.AuthFilter;
 import com.aure.security.ClientAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,6 +30,9 @@ public class SecurityConfig {
 	private final AuthFilter authFilter;
 	private final ClientAuthFilter clientAuthFilter;
 
+	@Value("${aure.cors-origins}")
+	private List<String> corsOrigins;
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
@@ -41,7 +45,7 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/signup").permitAll()
 				.requestMatchers("/auth/client/me", "/auth/client/logout").hasRole("CLIENT")
 				.requestMatchers("/auth/client/**").permitAll()
-				.requestMatchers(HttpMethod.GET, "/p/**", "/search").permitAll()
+				.requestMatchers(HttpMethod.GET, "/p/**", "/search", "/health").permitAll()
 				.requestMatchers(HttpMethod.GET, "/professionals/*/availability", "/professionals/*/photo").permitAll()
 				.anyRequest().authenticated())
 			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
@@ -57,7 +61,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		var configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+		configuration.setAllowedOrigins(corsOrigins);
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 

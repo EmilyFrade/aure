@@ -4,49 +4,59 @@ import { professionalGuard } from './core/guards/professional.guard';
 export const routes: Routes = [
   {
     path: '',
+    title: 'Aure · Agendamento online',
     loadComponent: () => import('./features/home/home').then((m) => m.Home)
   },
   {
     path: 'buscar',
+    title: 'Buscar profissionais · Aure',
     loadComponent: () => import('./features/search/search-page').then((m) => m.SearchPage)
   },
   {
     path: 'agendar/:slug',
+    title: 'Agendar · Aure',
     loadComponent: () => import('./features/booking/booking-page').then((m) => m.BookingPage)
   },
   {
     path: 'meus-agendamentos',
+    title: 'Meus agendamentos · Aure',
     loadComponent: () =>
       import('./features/client-appointments/client-appointments').then((m) => m.ClientAppointments)
   },
   {
     path: 'profissional/cadastro',
+    title: 'Criar conta · Aure',
     loadComponent: () =>
       import('./features/professional/onboarding/professional-onboarding').then((m) => m.ProfessionalOnboarding)
   },
   {
     path: 'profissional/primeiros-passos',
+    title: 'Primeiros passos · Aure',
     loadComponent: () =>
       import('./features/professional/setup/professional-setup').then((m) => m.ProfessionalSetup),
     canActivate: [professionalGuard]
   },
   {
     path: 'profissional/login',
+    title: 'Entrar · Aure',
     loadComponent: () => import('./features/professional/login/professional-login').then((m) => m.ProfessionalLogin)
   },
   {
     path: 'profissional/agenda',
+    title: 'Agenda · Aure',
     loadComponent: () => import('./features/professional/agenda/professional-agenda').then((m) => m.ProfessionalAgenda),
     canActivate: [professionalGuard]
   },
   {
     path: 'profissional/fila',
+    title: 'Fila de espera · Aure',
     loadComponent: () =>
       import('./features/professional/waiting-list/professional-waiting-list').then((m) => m.ProfessionalWaitingList),
     canActivate: [professionalGuard]
   },
   {
     path: 'profissional/configuracoes',
+    title: 'Configurações · Aure',
     loadComponent: () =>
       import('./features/professional/settings/professional-settings').then((m) => m.ProfessionalSettings),
     canActivate: [professionalGuard]

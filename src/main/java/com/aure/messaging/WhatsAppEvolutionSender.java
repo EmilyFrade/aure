@@ -37,7 +37,7 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 
 	public WhatsAppEvolutionSender(WhatsAppProperties properties) {
 		this.config = properties.evolution();
-		this.frontendUrl = properties.frontendUrl();
+		this.frontendUrl = properties.frontendUrl().replaceAll("/+$", "");
 		this.allowedNumbers = properties.allowedNumbers() == null ? Set.of() : properties.allowedNumbers().stream()
 				.filter(number -> !number.isBlank())
 				.map(WhatsAppEvolutionSender::toWhatsAppNumber)

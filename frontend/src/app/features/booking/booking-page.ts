@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, switchMap } from 'rxjs';
 import {
@@ -79,6 +80,7 @@ export class BookingPage {
   private readonly waitingListService = inject(WaitingListService);
   private readonly session = inject(SessionStore);
   private readonly toast = inject(ToastService);
+  private readonly title = inject(Title);
 
   protected readonly steps = ['Serviço', 'Data e hora', 'Confirmação'];
   protected readonly today = isoToday();
@@ -192,6 +194,7 @@ export class BookingPage {
     this.publicProfileService.getBySlug(slug).subscribe({
       next: (profile) => {
         this.profile.set(profile);
+        this.title.setTitle(`${profile.brand_name} · Aure`);
         this.step.set('profile');
       },
       error: () => this.step.set('not-found')
@@ -267,9 +270,9 @@ export class BookingPage {
         this.verifyPhase.set('code');
         this.startCountdown();
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.sendingCode.set(false);
-        this.toast.error('Não foi possível enviar o código. Confira o número.');
+        if (err.status > 0 && err.status < 500) this.toast.error('Não foi possível enviar o código. Confira o número.');
       }
     });
   }

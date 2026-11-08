@@ -150,9 +150,9 @@ export class ClientAppointments {
         this.phase.set('code');
         this.startCountdown();
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.sendingCode.set(false);
-        this.toast.error('Não foi possível enviar o código. Confira o número.');
+        if (err.status > 0 && err.status < 500) this.toast.error('Não foi possível enviar o código. Confira o número.');
       }
     });
   }

@@ -13,6 +13,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.http.HttpClient;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -34,8 +35,10 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 	private final String frontendUrl;
 	private final Set<String> allowedNumbers;
 	private final RestClient restClient;
+	private final Clock clock;
 
-	public WhatsAppEvolutionSender(WhatsAppProperties properties) {
+	public WhatsAppEvolutionSender(WhatsAppProperties properties, Clock clock) {
+		this.clock = clock;
 		this.config = properties.evolution();
 		this.frontendUrl = properties.frontendUrl().replaceAll("/+$", "");
 		this.allowedNumbers = properties.allowedNumbers() == null ? Set.of() : properties.allowedNumbers().stream()
@@ -180,8 +183,8 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 		return Character.toUpperCase(formatted.charAt(0)) + formatted.substring(1);
 	}
 
-	private static String describeDayFromToday(LocalDate date) {
-		LocalDate today = LocalDate.now();
+	private String describeDayFromToday(LocalDate date) {
+		LocalDate today = LocalDate.now(clock);
 		if (date.equals(today)) return "Hoje, " + date.format(DATE_FORMAT);
 		if (date.equals(today.plusDays(1))) return "Amanhã, " + date.format(DATE_FORMAT);
 		return describeDay(date);

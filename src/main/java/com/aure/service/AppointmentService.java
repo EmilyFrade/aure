@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +43,7 @@ public class AppointmentService {
 	private final ProfessionalService professionalService;
 	private final AppointmentEventPublisher eventPublisher;
 	private final WaitingListService waitingListService;
+	private final Clock clock;
 
 	@Transactional
 	public AppointmentResponseDto createAppointment(AppointmentRequestDto request) {
@@ -97,7 +99,7 @@ public class AppointmentService {
 		Client client = currentClient();
 		Appointment appointment = appointmentRepository.findByIdAndClientId(appointmentId, client.getId())
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
-		if (!LocalDateTime.of(appointment.getScheduledDate(), appointment.getScheduledTime()).isAfter(LocalDateTime.now())) {
+		if (!LocalDateTime.of(appointment.getScheduledDate(), appointment.getScheduledTime()).isAfter(LocalDateTime.now(clock))) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Esse horário já passou e não pode mais ser cancelado");
 		}
 		return AppointmentResponseDto.from(cancel(appointment, false));

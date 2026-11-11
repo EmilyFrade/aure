@@ -252,3 +252,25 @@ export interface ManualAppointmentRequest {
   client_name?: string;
   notes?: string;
 }
+
+export interface ServiceSummary {
+  name: string;
+  count: number;
+  revenue: number;
+}
+
+export interface MonthlyReport {
+  month: string;
+  completed_count: number;
+  revenue: number;
+  upcoming_count: number;
+  expected_revenue: number;
+  unmarked_count: number;
+  no_show_count: number;
+  cancelled_count: number;
+  attendance_rate: number | null;
+  reminders_sent: number;
+  reminders_confirmed: number;
+  reminders_cancelled: number;
+  top_services: ServiceSummary[];
+}

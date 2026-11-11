@@ -55,6 +55,12 @@ export const routes: Routes = [
     canActivate: [professionalGuard]
   },
   {
+    path: 'profissional/resumo',
+    title: 'Resumo do mês · Aure',
+    loadComponent: () => import('./features/professional/report/professional-report').then((m) => m.ProfessionalReport),
+    canActivate: [professionalGuard]
+  },
+  {
     path: 'profissional/configuracoes',
     title: 'Configurações · Aure',
     loadComponent: () =>

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,6 +53,7 @@ public class WaitingListService {
 	private final WhatsAppMessageSender whatsAppMessageSender;
 	private final AvailabilityService availabilityService;
 	private final AppointmentRepository appointmentRepository;
+	private final Clock clock;
 
 	@Transactional
 	public WaitingListResponseDto join(WaitingListRequestDto request) {
@@ -92,7 +94,7 @@ public class WaitingListService {
 
 	private WaitingListResponseDto create(Professional professional, Client client, Service service, LocalDate start, LocalDate end,
 			DayPeriod period, String duplicateMessage) {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock);
 
 		if (start.isAfter(end)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data inicial deve ser anterior ou igual à data final");
@@ -123,7 +125,7 @@ public class WaitingListService {
 	@Transactional(readOnly = true)
 	public List<WaitingListResponseDto> listMine() {
 		Client client = currentClient();
-		return waitingListRepository.findActiveByClient(client.getId(), ACTIVE_STATUSES, LocalDate.now()).stream()
+		return waitingListRepository.findActiveByClient(client.getId(), ACTIVE_STATUSES, LocalDate.now(clock)).stream()
 				.map(this::toResponse)
 				.toList();
 	}
@@ -131,7 +133,7 @@ public class WaitingListService {
 	@Transactional(readOnly = true)
 	public List<WaitingListResponseDto> listForProfessional(Long professionalId) {
 		professionalService.requireOwnership(professionalId);
-		return waitingListRepository.findActiveByProfessional(professionalId, ACTIVE_STATUSES, LocalDate.now()).stream()
+		return waitingListRepository.findActiveByProfessional(professionalId, ACTIVE_STATUSES, LocalDate.now(clock)).stream()
 				.map(this::toResponse)
 				.toList();
 	}
@@ -162,7 +164,7 @@ public class WaitingListService {
 	public void notifyNextInQueue(AppointmentCancelledEvent event) {
 		LocalDate date = event.scheduledDate();
 		LocalTime freedStart = event.scheduledTime();
-		if (!LocalDateTime.of(date, freedStart).isAfter(LocalDateTime.now())) return;
+		if (!LocalDateTime.of(date, freedStart).isAfter(LocalDateTime.now(clock))) return;
 
 		LocalTime freedEnd = appointmentRepository.findById(event.appointmentId())
 				.map(appointment -> freedStart.plusMinutes(appointment.getDurationMinutes()))

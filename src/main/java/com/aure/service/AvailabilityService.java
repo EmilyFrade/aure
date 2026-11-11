@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -38,6 +39,7 @@ public class AvailabilityService {
 	private final AppointmentRepository appointmentRepository;
 	private final ProfessionalService professionalService;
 	private final ServiceRepository serviceRepository;
+	private final Clock clock;
 
 	@Transactional(readOnly = true)
 	public List<ScheduleResponseDto> findSchedules(Long professionalId) {
@@ -132,7 +134,7 @@ public class AvailabilityService {
 		List<Appointment> appointments = appointmentRepository
 				.findByProfessionalIdAndScheduledDateAndStatusNot(professionalId, date, AppointmentStatus.CANCELLED);
 
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now(clock);
 
 		List<LocalTime> freeSlots = allSlots.stream()
 			.filter(slot -> {

@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 
@@ -28,10 +28,11 @@ public class AppointmentReminderService {
 	private final AppointmentRepository appointmentRepository;
 	private final AppointmentReminderRepository appointmentReminderRepository;
 	private final WhatsAppMessageSender whatsAppMessageSender;
+	private final Clock clock;
 
 	@Scheduled(fixedDelayString = "${reminder.interval}")
 	public void sendDueReminders() {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now(clock);
 		LocalDateTime limit = now.plusHours(HOURS_BEFORE);
 
 		List<Appointment> appointments = appointmentRepository.findWithoutSentReminder(
@@ -50,7 +51,7 @@ public class AppointmentReminderService {
 		}
 	}
 
-	private static boolean bookedWithinLeadTime(Appointment appointment, LocalDateTime start) {
-		return appointment.getCreatedAt().isAfter(start.minusHours(HOURS_BEFORE).atZone(ZoneId.systemDefault()).toInstant());
+	private boolean bookedWithinLeadTime(Appointment appointment, LocalDateTime start) {
+		return appointment.getCreatedAt().isAfter(start.minusHours(HOURS_BEFORE).atZone(clock.getZone()).toInstant());
 	}
 }

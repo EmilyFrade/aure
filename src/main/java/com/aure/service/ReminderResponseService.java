@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -32,6 +33,7 @@ public class ReminderResponseService {
 	private final AppointmentReminderRepository appointmentReminderRepository;
 	private final AppointmentService appointmentService;
 	private final WhatsAppMessageSender whatsAppMessageSender;
+	private final Clock clock;
 
 	@Transactional
 	public void handleReply(String whatsAppNumber, String text) {
@@ -87,7 +89,7 @@ public class ReminderResponseService {
 		return candidates;
 	}
 
-	private static boolean isUpcoming(Appointment appointment) {
-		return LocalDateTime.of(appointment.getScheduledDate(), appointment.getScheduledTime()).isAfter(LocalDateTime.now());
+	private boolean isUpcoming(Appointment appointment) {
+		return LocalDateTime.of(appointment.getScheduledDate(), appointment.getScheduledTime()).isAfter(LocalDateTime.now(clock));
 	}
 }

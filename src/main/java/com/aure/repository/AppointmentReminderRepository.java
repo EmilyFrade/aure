@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -23,4 +24,13 @@ public interface AppointmentReminderRepository extends JpaRepository<Appointment
 			@Param("clientId") Long clientId,
 			@Param("status") ReminderStatus status,
 			@Param("statuses") Collection<AppointmentStatus> statuses);
+
+	@Query("SELECT r FROM AppointmentReminder r JOIN r.appointment a " +
+			"WHERE a.professional.id = :professionalId AND r.status = :status " +
+			"AND a.scheduledDate BETWEEN :startDate AND :endDate")
+	List<AppointmentReminder> findByProfessionalAndPeriod(
+			@Param("professionalId") Long professionalId,
+			@Param("status") ReminderStatus status,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
 }

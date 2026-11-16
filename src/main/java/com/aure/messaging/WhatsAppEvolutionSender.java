@@ -19,8 +19,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -33,7 +31,6 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 
 	private final WhatsAppProperties.Evolution config;
 	private final String frontendUrl;
-	private final Set<String> allowedNumbers;
 	private final RestClient restClient;
 	private final Clock clock;
 
@@ -41,13 +38,6 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 		this.clock = clock;
 		this.config = properties.evolution();
 		this.frontendUrl = properties.frontendUrl().replaceAll("/+$", "");
-		this.allowedNumbers = properties.allowedNumbers() == null ? Set.of() : properties.allowedNumbers().stream()
-				.filter(number -> !number.isBlank())
-				.map(WhatsAppEvolutionSender::toWhatsAppNumber)
-				.collect(Collectors.toSet());
-		if (allowedNumbers.isEmpty()) {
-			log.warn("[WhatsApp] WHATSAPP_ALLOWED_NUMBERS vazio: nenhuma mensagem será enviada pela Evolution");
-		}
 		this.restClient = RestClient.builder()
 				.baseUrl(config.url())
 				.defaultHeader("apikey", config.apiKey())
@@ -133,11 +123,6 @@ public class WhatsAppEvolutionSender implements WhatsAppMessageSender {
 
 	private boolean sendText(String phone, String text) {
 		String to = toWhatsAppNumber(phone);
-		if (!allowedNumbers.contains(to)) {
-			log.warn("[WhatsApp] envio bloqueado para {}: número fora de WHATSAPP_ALLOWED_NUMBERS", to);
-			return false;
-		}
-
 		try {
 			restClient.post()
 					.uri("/message/sendText/{instance}", config.instance())

@@ -37,7 +37,9 @@ public class EvolutionMessageListener {
 		if (!remoteJid.endsWith(CONTACT_SUFFIX)) return;
 		if (key.path("fromMe").asBoolean() && !remoteJid.equals(root.path("sender").asString(""))) return;
 
-		String text = root.path("data").path("message").path("conversation").asString("");
+		JsonNode content = root.path("data").path("message");
+		String text = content.path("conversation").asString("");
+		if (text.isBlank()) text = content.path("extendedTextMessage").path("text").asString("");
 		if (text.isBlank()) return;
 
 		reminderResponseService.handleReply(remoteJid.substring(0, remoteJid.length() - CONTACT_SUFFIX.length()), text);

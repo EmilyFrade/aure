@@ -10,6 +10,7 @@ import com.aure.messaging.WhatsAppMessageSender;
 import com.aure.repository.AppointmentReminderRepository;
 import com.aure.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ReminderResponseService {
@@ -45,7 +47,10 @@ public class ReminderResponseService {
 						.findAwaitingResponse(client.getId(), ReminderStatus.SENT, ACTIVE_STATUSES).stream()
 						.filter(reminder -> isUpcoming(reminder.getAppointment()))
 						.findFirst());
-		if (pending.isEmpty()) return;
+		if (pending.isEmpty()) {
+			log.info("[WhatsApp] resposta \"{}\" de {} ignorada: nenhum lembrete aguardando resposta", text.trim(), whatsAppNumber);
+			return;
+		}
 
 		AppointmentReminder reminder = pending.get();
 		Appointment appointment = reminder.getAppointment();
@@ -57,6 +62,7 @@ public class ReminderResponseService {
 		reminder.setResponse(response);
 		reminder.setRespondedAt(Instant.now());
 		appointmentReminderRepository.save(reminder);
+		log.info("[WhatsApp] resposta de {} ao lembrete do agendamento {}: {}", whatsAppNumber, appointment.getId(), response);
 
 		AppointmentMessage message = AppointmentMessage.of(appointment);
 		if (response == ReminderResponse.CONFIRMED) {

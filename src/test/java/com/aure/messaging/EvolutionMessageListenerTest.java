@@ -50,6 +50,29 @@ class EvolutionMessageListenerTest {
 	}
 
 	@Test
+	@DisplayName("contato identificado por @lid usa o número de remoteJidAlt")
+	void lidContact() {
+		receiveRaw("""
+				{"sender": "5531988880000@s.whatsapp.net",
+				 "data": {"key": {"remoteJid": "118463855108140@lid", "remoteJidAlt": "5531999990000@s.whatsapp.net",
+				                  "fromMe": false, "addressingMode": "lid"},
+				          "message": {"conversation": "1"}}}
+				""");
+
+		verify(reminderResponseService).handleReply("5531999990000", "1");
+	}
+
+	@Test
+	@DisplayName("resposta em conversa com mensagens temporárias também é lida")
+	void ephemeralReply() {
+		receive(CLIENT_JID, false, """
+				{"ephemeralMessage": {"message": {"extendedTextMessage": {"text": "2"}}}}
+				""");
+
+		verify(reminderResponseService).handleReply("5531999990000", "2");
+	}
+
+	@Test
 	@DisplayName("mensagens de grupo e sem texto são ignoradas")
 	void ignoredMessages() {
 		receive("123456789@g.us", false, """
@@ -77,6 +100,10 @@ class EvolutionMessageListenerTest {
 				{"sender": "5531988880000@s.whatsapp.net",
 				 "data": {"key": {"remoteJid": "%s", "fromMe": %s}, "message": %s}}
 				""".formatted(remoteJid, fromMe, message);
+		receiveRaw(body);
+	}
+
+	private void receiveRaw(String body) {
 		listener.onMessageReceived(new Message(body.getBytes(StandardCharsets.UTF_8)));
 	}
 }

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.List;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ import tools.jackson.databind.json.JsonMapper;
 public class EvolutionMessageListener {
 
 	private static final String CONTACT_SUFFIX = "@s.whatsapp.net";
+	private static final List<String> CONTACT_FIELDS = List.of("remoteJid", "remoteJidAlt", "senderPn");
 
 	private final JsonMapper jsonMapper;
 	private final ReminderResponseService reminderResponseService;
@@ -33,15 +36,24 @@ public class EvolutionMessageListener {
 
 	private void handle(JsonNode root) {
 		JsonNode key = root.path("data").path("key");
-		String remoteJid = key.path("remoteJid").asString("");
-		if (!remoteJid.endsWith(CONTACT_SUFFIX)) return;
-		if (key.path("fromMe").asBoolean() && !remoteJid.equals(root.path("sender").asString(""))) return;
+		String contactJid = contactJid(key);
+		if (contactJid == null) return;
+		if (key.path("fromMe").asBoolean() && !contactJid.equals(root.path("sender").asString(""))) return;
 
 		JsonNode content = root.path("data").path("message");
+		if (content.has("ephemeralMessage")) content = content.path("ephemeralMessage").path("message");
 		String text = content.path("conversation").asString("");
 		if (text.isBlank()) text = content.path("extendedTextMessage").path("text").asString("");
 		if (text.isBlank()) return;
 
-		reminderResponseService.handleReply(remoteJid.substring(0, remoteJid.length() - CONTACT_SUFFIX.length()), text);
+		reminderResponseService.handleReply(contactJid.substring(0, contactJid.length() - CONTACT_SUFFIX.length()), text);
+	}
+
+	private static String contactJid(JsonNode key) {
+		for (String field : CONTACT_FIELDS) {
+			String jid = key.path(field).asString("");
+			if (jid.endsWith(CONTACT_SUFFIX)) return jid;
+		}
+		return null;
 	}
 }

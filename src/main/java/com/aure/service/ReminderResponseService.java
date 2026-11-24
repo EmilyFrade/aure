@@ -48,7 +48,7 @@ public class ReminderResponseService {
 						.filter(reminder -> isUpcoming(reminder.getAppointment()))
 						.findFirst());
 		if (pending.isEmpty()) {
-			log.info("[WhatsApp] resposta \"{}\" de {} ignorada: nenhum lembrete aguardando resposta", text.trim(), whatsAppNumber);
+			log.info("[WhatsApp] resposta ignorada: nenhum lembrete aguardando resposta");
 			return;
 		}
 
@@ -62,7 +62,7 @@ public class ReminderResponseService {
 		reminder.setResponse(response);
 		reminder.setRespondedAt(Instant.now());
 		appointmentReminderRepository.save(reminder);
-		log.info("[WhatsApp] resposta de {} ao lembrete do agendamento {}: {}", whatsAppNumber, appointment.getId(), response);
+		log.info("[WhatsApp] resposta ao lembrete do agendamento {}: {}", appointment.getId(), response);
 
 		AppointmentMessage message = AppointmentMessage.of(appointment);
 		if (response == ReminderResponse.CONFIRMED) {
